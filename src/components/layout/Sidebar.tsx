@@ -73,8 +73,13 @@ export default function Sidebar({
   return (
     <aside
       className={cn(
-        "relative flex flex-col h-full bg-white dark:bg-neutral-900 border-r border-neutral-200 dark:border-neutral-800 transition-all duration-300",
-        collapsed ? "w-14" : "w-64",
+        "flex flex-col h-full bg-white dark:bg-neutral-900 border-r border-neutral-200 dark:border-neutral-800 transition-all duration-300",
+        mobile
+          ? cn(
+              "fixed inset-y-0 left-0 z-40 w-72 transform",
+              mobileOpen ? "translate-x-0" : "-translate-x-full",
+            )
+          : cn("relative", collapsed ? "w-14" : "w-64"),
       )}
     >
       {/* Header */}
@@ -91,6 +96,7 @@ export default function Sidebar({
       <div className={cn("px-2 py-2", collapsed && "flex justify-center")}>
         <Link
           href="/chat"
+          onClick={handleNavClick}
           className={cn(
             "flex items-center gap-2 rounded-lg px-2 py-2 text-sm font-medium text-neutral-700 dark:text-neutral-300",
             "hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors",
@@ -115,6 +121,7 @@ export default function Sidebar({
             <Link
               key={session.id}
               href={`/chat/${session.id}`}
+              onClick={handleNavClick}
               className={cn(
                 "group flex items-center justify-between rounded-lg px-2 py-2 text-sm transition-colors",
                 activeId === session.id
@@ -168,22 +175,24 @@ export default function Sidebar({
       </div>
 
       {/* Collapse toggle */}
-      <button
-        onClick={() => setCollapsed((c) => !c)}
-        className={cn(
-          "absolute -right-3 top-1/2 -translate-y-1/2 z-10",
-          "w-6 h-6 rounded-full bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700",
-          "flex items-center justify-center shadow-sm text-neutral-500",
-          "hover:bg-neutral-50 dark:hover:bg-neutral-700 transition-colors",
-        )}
-        title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-      >
-        {collapsed ? (
-          <ChevronRight className="w-3.5 h-3.5" />
-        ) : (
-          <ChevronLeft className="w-3.5 h-3.5" />
-        )}
-      </button>
+      {!mobile && (
+        <button
+          onClick={() => setCollapsed((c) => !c)}
+          className={cn(
+            "absolute -right-3 top-1/2 -translate-y-1/2 z-10",
+            "w-6 h-6 rounded-full bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700",
+            "flex items-center justify-center shadow-sm text-neutral-500",
+            "hover:bg-neutral-50 dark:hover:bg-neutral-700 transition-colors",
+          )}
+          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+        >
+          {collapsed ? (
+            <ChevronRight className="w-3.5 h-3.5" />
+          ) : (
+            <ChevronLeft className="w-3.5 h-3.5" />
+          )}
+        </button>
+      )}
     </aside>
   );
 }

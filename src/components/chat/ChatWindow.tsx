@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useChat } from "@ai-sdk/react";
 import type { CoreMessage } from "ai";
@@ -28,6 +28,22 @@ export default function ChatWindow({
   const [enabledTools, setEnabledTools] = useState<string[]>(initialTools);
   const [sessionId, setSessionId] = useState(initialSessionId);
   const sessionRedirected = useRef(false);
+
+  useEffect(() => {
+    if (!sessionId) return;
+
+    const controller = new AbortController();
+    void fetch(`/api/sessions/${sessionId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ model, tools_enabled: enabledTools }),
+      signal: controller.signal,
+    }).catch(() => {
+      // Non-blocking UX: session settings will still persist on next message.
+    });
+
+    return () => controller.abort();
+  }, [sessionId, model, enabledTools]);
 
   const { messages, input, setInput, handleSubmit, isLoading, error, stop } =
     useChat({

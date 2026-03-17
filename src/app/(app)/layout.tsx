@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getSessions } from "@/lib/db/sessions";
 import Sidebar from "@/components/layout/Sidebar";
 import MobileHeader from "@/components/layout/MobileHeader";
+import MobileSidebarBackdrop from "@/components/layout/MobileSidebarBackdrop";
 
 export default async function AppLayout({
   children,
@@ -26,6 +27,7 @@ export default async function AppLayout({
       </div>
       {/* Mobile sidebar (drawer) */}
       <div className="md:hidden">
+        <MobileSidebarBackdrop />
         <Sidebar user={user} initialSessions={sessions} mobile />
       </div>
       <main className="flex-1 flex flex-col overflow-hidden min-w-0">
