@@ -5,7 +5,7 @@ create extension if not exists "uuid-ossp";
 -- chat_sessions
 -- ============================================================
 create table if not exists public.chat_sessions (
-  id            uuid primary key default uuid_generate_v4(),
+  id            uuid primary key default gen_random_uuid(),
   user_id       uuid not null references auth.users(id) on delete cascade,
   title         text not null default 'New Chat',
   model         text not null default 'google/gemini-2.0-flash',
@@ -54,7 +54,7 @@ create policy "Users can delete their own sessions"
 -- messages
 -- ============================================================
 create table if not exists public.messages (
-  id         uuid primary key default uuid_generate_v4(),
+  id         uuid primary key default gen_random_uuid(),
   session_id uuid not null references public.chat_sessions(id) on delete cascade,
   role       text not null check (role in ('user', 'assistant', 'tool')),
   content    jsonb not null,
