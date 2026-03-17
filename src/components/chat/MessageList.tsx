@@ -39,8 +39,8 @@ export default function MessageList({ messages, isLoading }: Props) {
   return (
     <div className="flex-1 overflow-y-auto">
       <div className="max-w-3xl mx-auto px-4 py-6 space-y-6">
-        {messages.map((message) => (
-          <MessageItem key={message.id} message={message} />
+        {messages.map((message, msgIdx) => (
+          <MessageItem key={msgIdx} message={message} />
         ))}
         {isLoading && (
           <div className="flex items-start gap-3">
