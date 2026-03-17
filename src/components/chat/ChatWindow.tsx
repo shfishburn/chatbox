@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useChat } from "@ai-sdk/react";
 import type { CoreMessage } from "ai";
 import { DEFAULT_MODEL } from "@/lib/ai/models";
+import { useApiKey } from "@/lib/apiKeyStore";
 import MessageList from "./MessageList";
 import ChatInput from "./ChatInput";
 import ToolsPanel from "./ToolsPanel";
@@ -24,10 +25,19 @@ export default function ChatWindow({
   initialMessages = [],
 }: Props) {
   const router = useRouter();
+  const { apiKey } = useApiKey();
+  const [requestError, setRequestError] = useState<string | null>(null);
   const [model, setModel] = useState(initialModel);
   const [enabledTools, setEnabledTools] = useState<string[]>(initialTools);
   const [sessionId, setSessionId] = useState(initialSessionId);
   const sessionRedirected = useRef(false);
+
+  useEffect(() => {
+    // Clear stale missing-key guidance once a key is provided.
+    if (apiKey) {
+      setRequestError(null);
+    }
+  }, [apiKey]);
 
   useEffect(() => {
     if (!sessionId) return;
@@ -49,8 +59,32 @@ export default function ChatWindow({
     useChat({
       api: "/api/chat",
       initialMessages: initialMessages as never,
+      headers: apiKey ? { "x-openrouter-key": apiKey } : {},
       body: { sessionId, model, enabledTools },
-      onResponse: (response) => {
+      onResponse: async (response) => {
+        if (!response.ok) {
+          if (response.status === 400) {
+            try {
+              const payload = (await response.clone().json()) as {
+                error?: string;
+              };
+
+              if (payload.error === "OpenRouter API key is required.") {
+                setRequestError(
+                  "Add your OpenRouter API key in Sidebar > API Key to continue.",
+                );
+                return;
+              }
+            } catch {
+              // Fall through to generic error handling.
+            }
+          }
+
+          setRequestError(null);
+          return;
+        }
+
+        setRequestError(null);
         const newSessionId = response.headers.get("X-Session-Id");
         const isNew = response.headers.get("X-Is-New-Session") === "true";
         if (newSessionId && isNew && !sessionRedirected.current) {
@@ -82,7 +116,7 @@ export default function ChatWindow({
         onSubmit={handleSubmit}
         isLoading={isLoading}
         onStop={stop}
-        error={error?.message ?? null}
+        error={requestError ?? error?.message ?? null}
       />
     </div>
   );

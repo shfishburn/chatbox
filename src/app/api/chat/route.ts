@@ -1,6 +1,6 @@
 import { streamText, type CoreMessage } from "ai";
 import { createClient } from "@/lib/supabase/server";
-import { openrouter } from "@/lib/ai/openrouter";
+import { createOpenRouter } from "@/lib/ai/openrouter";
 import { ALL_TOOLS } from "@/lib/ai/tools";
 import { createSession, updateSession } from "@/lib/db/sessions";
 import { saveMessage } from "@/lib/db/messages";
@@ -18,6 +18,20 @@ export async function POST(req: Request) {
   if (!user) {
     return new Response("Unauthorized", { status: 401 });
   }
+
+  const apiKey =
+    req.headers.get("x-openrouter-key")?.trim() ??
+    process.env.OPENROUTER_API_KEY?.trim() ??
+    "";
+
+  if (!apiKey) {
+    return Response.json(
+      { error: "OpenRouter API key is required." },
+      { status: 400 },
+    );
+  }
+
+  const openrouter = createOpenRouter(apiKey);
 
   const body = await req.json();
   const {
