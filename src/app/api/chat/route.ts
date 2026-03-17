@@ -92,6 +92,9 @@ export async function POST(req: Request) {
     messages,
     tools: toolsToUse,
     maxSteps: 5,
+    onError: ({ error }) => {
+      console.error("[chat/route] streamText error:", error);
+    },
     onFinish: async ({ response }) => {
       // Save all new assistant messages (including tool calls / results)
       for (const msg of response.messages) {
@@ -108,7 +111,12 @@ export async function POST(req: Request) {
   });
 
   // Attach session ID to response headers so the client can redirect
-  const dataStream = result.toDataStreamResponse();
+  const dataStream = result.toDataStreamResponse({
+    getErrorMessage: (error) => {
+      if (error instanceof Error) return error.message;
+      return String(error);
+    },
+  });
   const headers = new Headers(dataStream.headers);
   headers.set("X-Session-Id", sessionId!);
   headers.set("X-Is-New-Session", isNewSession ? "true" : "false");

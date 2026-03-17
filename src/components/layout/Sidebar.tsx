@@ -160,7 +160,7 @@ export default function Sidebar({
             collapsed && "flex flex-col items-center",
           )}
         >
-          <ThemeToggle collapsed={collapsed} />
+          {/* <ThemeToggle collapsed={collapsed} /> */}
           <button
             onClick={() => setShowApiKeyModal(true)}
             className={cn(
