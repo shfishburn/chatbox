@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useChat } from "@ai-sdk/react";
 import type { CoreMessage } from "ai";
-import { DEFAULT_MODEL } from "@/lib/ai/models";
 import { useApiKey } from "@/lib/apiKeyStore";
 import MessageList from "./MessageList";
 import ChatInput from "./ChatInput";
@@ -20,7 +19,7 @@ interface Props {
 
 export default function ChatWindow({
   sessionId: initialSessionId,
-  initialModel = DEFAULT_MODEL,
+  initialModel,
   initialTools = [],
   initialMessages = [],
 }: Props) {

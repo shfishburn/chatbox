@@ -37,7 +37,7 @@ export default function MessageItem({ message }: Props) {
           <ToolCallDisplay key={inv.toolCallId} invocation={inv} />
         ))}
         {/* Text content */}
-        {message.content && (
+        {getTextContent(message) && (
           <div
             className={cn(
               "text-sm leading-relaxed text-foreground",
@@ -46,7 +46,7 @@ export default function MessageItem({ message }: Props) {
               "prose-code:bg-neutral-100 dark:prose-code:bg-neutral-800 prose-code:px-1 prose-code:rounded",
             )}
           >
-            <SimpleMarkdown content={message.content} />
+            <SimpleMarkdown content={getTextContent(message)} />
           </div>
         )}
       </div>
@@ -56,6 +56,9 @@ export default function MessageItem({ message }: Props) {
 
 function getTextContent(message: Message): string {
   if (typeof message.content === "string") return message.content;
+  if (Array.isArray(message.content)) {
+    return message.content.map((p) => p.text).join("\n");
+  }
   return "";
 }
 

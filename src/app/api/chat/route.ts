@@ -4,8 +4,6 @@ import { createOpenRouter } from "@/lib/ai/openrouter";
 import { ALL_TOOLS } from "@/lib/ai/tools";
 import { createSession, updateSession } from "@/lib/db/sessions";
 import { saveMessage } from "@/lib/db/messages";
-import { DEFAULT_MODEL } from "@/lib/ai/models";
-
 export const maxDuration = 60;
 
 export async function POST(req: Request) {
@@ -37,12 +35,12 @@ export async function POST(req: Request) {
   const {
     messages,
     sessionId: incomingSessionId,
-    model = DEFAULT_MODEL,
+    model,
     enabledTools = [],
   }: {
     messages: CoreMessage[];
     sessionId?: string;
-    model?: string;
+    model: string;
     enabledTools?: string[];
   } = body;
 
