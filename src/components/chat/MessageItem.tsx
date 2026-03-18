@@ -1,7 +1,6 @@
 "use client";
 
 import type { Message, ToolInvocation } from "@/lib/ai/types";
-import { cn } from "@/lib/utils";
 import { Bot, User } from "lucide-react";
 import ToolCallDisplay from "./ToolCallDisplay";
 
@@ -15,7 +14,7 @@ export default function MessageItem({ message }: Props) {
   if (isUser) {
     return (
       <div className="flex items-start gap-3 justify-end">
-        <div className="max-w-[85%] rounded-2xl rounded-tr-sm px-4 py-3 bg-blue-600 text-white text-sm leading-relaxed">
+        <div className="max-w-[85%] rounded-2xl rounded-tr-sm px-4 py-3 bg-blue-600 text-white text-sm leading-relaxed font-mono whitespace-pre-wrap break-words">
           {getTextContent(message)}
         </div>
         <div className="w-8 h-8 rounded-lg bg-neutral-200 dark:bg-neutral-700 flex items-center justify-center shrink-0 mt-0.5">
@@ -38,15 +37,8 @@ export default function MessageItem({ message }: Props) {
         ))}
         {/* Text content */}
         {getTextContent(message) && (
-          <div
-            className={cn(
-              "text-sm leading-relaxed text-foreground",
-              "prose prose-sm dark:prose-invert max-w-none",
-              "prose-p:my-1.5 prose-pre:bg-neutral-100 dark:prose-pre:bg-neutral-800",
-              "prose-code:bg-neutral-100 dark:prose-code:bg-neutral-800 prose-code:px-1 prose-code:rounded",
-            )}
-          >
-            <SimpleMarkdown content={getTextContent(message)} />
+          <div className="text-sm leading-relaxed text-foreground font-mono whitespace-pre-wrap break-words">
+            {getTextContent(message)}
           </div>
         )}
       </div>
@@ -56,72 +48,4 @@ export default function MessageItem({ message }: Props) {
 
 function getTextContent(message: Message): string {
   return message.content;
-}
-
-/** Minimal Markdown renderer (bold, code, line breaks) — no external dep */
-function SimpleMarkdown({ content }: { content: string }) {
-  // Split on code blocks first
-  const parts = content.split(/(```[\s\S]*?```)/g);
-
-  return (
-    <>
-      {parts.map((part, i) => {
-        if (part.startsWith("```")) {
-          const match = part.match(/```(\w*)\n?([\s\S]*?)```/);
-          const code = match?.[2] ?? part.slice(3, -3);
-          const lang = match?.[1] ?? "";
-          return (
-            <pre
-              key={i}
-              className="overflow-x-auto rounded-lg bg-neutral-100 dark:bg-neutral-800 p-3 text-xs my-3"
-            >
-              {lang && (
-                <div className="text-xs text-neutral-500 mb-1 font-mono">
-                  {lang}
-                </div>
-              )}
-              <code>{code}</code>
-            </pre>
-          );
-        }
-        // Inline formatting
-        return <InlineText key={i} text={part} />;
-      })}
-    </>
-  );
-}
-
-function InlineText({ text }: { text: string }) {
-  const lines = text.split("\n");
-  return (
-    <>
-      {lines.map((line, li) => {
-        const parts = line.split(/(`[^`]+`|\*\*[^*]+\*\*|\*[^*]+\*)/g);
-        return (
-          <span key={li}>
-            {parts.map((p, pi) => {
-              if (p.startsWith("**") && p.endsWith("**")) {
-                return <strong key={pi}>{p.slice(2, -2)}</strong>;
-              }
-              if (p.startsWith("*") && p.endsWith("*")) {
-                return <em key={pi}>{p.slice(1, -1)}</em>;
-              }
-              if (p.startsWith("`") && p.endsWith("`")) {
-                return (
-                  <code
-                    key={pi}
-                    className="bg-neutral-100 dark:bg-neutral-800 px-1 rounded text-xs font-mono"
-                  >
-                    {p.slice(1, -1)}
-                  </code>
-                );
-              }
-              return <span key={pi}>{p}</span>;
-            })}
-            {li < lines.length - 1 && <br />}
-          </span>
-        );
-      })}
-    </>
-  );
 }
