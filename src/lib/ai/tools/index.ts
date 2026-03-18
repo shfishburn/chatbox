@@ -1,4 +1,4 @@
-import type OpenAI from "openai";
+import type { ChatCompletionTool } from "../openrouter";
 import { zodToJsonSchema } from "zod-to-json-schema";
 import type { z } from "zod";
 import { calculatorTool } from "./calculator";
@@ -27,7 +27,7 @@ export type AnyTool = (typeof ALL_TOOLS)[keyof typeof ALL_TOOLS];
 
 export function toOpenAITools(
   tools: Record<string, ToolSchemaLike>,
-): OpenAI.ChatCompletionTool[] {
+): ChatCompletionTool[] {
   return Object.entries(tools).map(([name, t]) => {
     const { $schema, ...parameters } = zodToJsonSchema(t.parameters) as {
       $schema?: string;

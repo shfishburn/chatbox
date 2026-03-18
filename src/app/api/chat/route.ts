@@ -1,6 +1,10 @@
-import type OpenAI from "openai";
+import type { ChatCompletionMessage } from "@/lib/ai/openrouter";
 import { createClient } from "@/lib/supabase/server";
 import { createOpenRouter } from "@/lib/ai/openrouter";
+import {
+  OpenRouterRequestError,
+  OpenRouterTimeoutError,
+} from "@/lib/ai/openrouter";
 import { ALL_TOOLS, toOpenAITools } from "@/lib/ai/tools";
 import type { AnyTool } from "@/lib/ai/tools";
 import { createSession, updateSession } from "@/lib/db/sessions";
@@ -14,10 +18,20 @@ import type {
 
 export const maxDuration = 60;
 
+function buildSessionHeaders(
+  sessionId: string,
+  isNewSession: boolean,
+): HeadersInit {
+  return {
+    "X-Session-Id": sessionId,
+    "X-Is-New-Session": isNewSession ? "true" : "false",
+  };
+}
+
 function coreMessagesToOpenAI(
   messages: CoreMessage[],
-): OpenAI.Chat.ChatCompletionMessageParam[] {
-  const result: OpenAI.Chat.ChatCompletionMessageParam[] = [];
+): ChatCompletionMessage[] {
+  const result: ChatCompletionMessage[] = [];
   for (const msg of messages) {
     if (msg.role === "system") {
       result.push({ role: "system", content: msg.content as string });
@@ -38,7 +52,7 @@ function coreMessagesToOpenAI(
       const toolCallParts = parts.filter(
         (p): p is ToolCallPart => p.type === "tool-call",
       );
-      const openAIMsg: OpenAI.Chat.ChatCompletionAssistantMessageParam = {
+      const openAIMsg: Extract<ChatCompletionMessage, { role: "assistant" }> = {
         role: "assistant",
         content: text || null,
       };
@@ -69,9 +83,16 @@ function coreMessagesToOpenAI(
   return result;
 }
 
-function openAIAssistantToCoreMessage(
-  msg: OpenAI.Chat.ChatCompletionMessage,
-): CoreMessage {
+function openAIAssistantToCoreMessage(msg: {
+  content: string | null;
+  tool_calls?:
+    | {
+        id: string;
+        type: string;
+        function: { name: string; arguments: string };
+      }[]
+    | null;
+}): CoreMessage {
   if (msg.tool_calls && msg.tool_calls.length > 0) {
     const parts: (TextPart | ToolCallPart)[] = [];
     if (msg.content) {
@@ -100,7 +121,7 @@ function openAIAssistantToCoreMessage(
 async function runWithTools(
   openai: ReturnType<typeof createOpenRouter>,
   model: string,
-  messages: OpenAI.Chat.ChatCompletionMessageParam[],
+  messages: ChatCompletionMessage[],
   toolsToUse: Record<string, AnyTool> | undefined,
   maxSteps: number,
 ): Promise<CoreMessage[]> {
@@ -272,24 +293,37 @@ export async function POST(req: Request) {
     return Response.json(
       { messages: responseMessages },
       {
-        headers: {
-          "X-Session-Id": sessionId!,
-          "X-Is-New-Session": isNewSession ? "true" : "false",
-        },
+        headers: buildSessionHeaders(sessionId!, isNewSession),
       },
     );
   } catch (error) {
     console.error("[chat/route] error:", error);
-    const message =
-      error instanceof Error ? error.message : "An error occurred";
+
+    if (error instanceof OpenRouterTimeoutError) {
+      return Response.json(
+        { error: "OpenRouter request timed out. Please try again." },
+        {
+          status: 504,
+          headers: buildSessionHeaders(sessionId!, isNewSession),
+        },
+      );
+    }
+
+    if (error instanceof OpenRouterRequestError) {
+      return Response.json(
+        { error: "OpenRouter request failed. Please try again." },
+        {
+          status: 502,
+          headers: buildSessionHeaders(sessionId!, isNewSession),
+        },
+      );
+    }
+
     return Response.json(
-      { error: message },
+      { error: "An error occurred" },
       {
         status: 500,
-        headers: {
-          "X-Session-Id": sessionId!,
-          "X-Is-New-Session": isNewSession ? "true" : "false",
-        },
+        headers: buildSessionHeaders(sessionId!, isNewSession),
       },
     );
   }
