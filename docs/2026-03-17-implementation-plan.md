@@ -29,8 +29,7 @@
 
 ### Phase 5 — Tools (server-side only)
 16. `calculator.ts` — math via `mathjs.evaluate()` (sandboxed, not arbitrary JS)
-17. `webSearch.ts` — Tavily API (requires `TAVILY_API_KEY`)
-18. `weather.ts` — Open-Meteo API (no key needed; geocode city → fetch weather)
+17. `weather.ts` — Open-Meteo API (no key needed; geocode city → fetch weather)
 19. `wikipedia.ts` — Wikipedia REST API search + article summary
 20. `urlReader.ts` — fetch & extract text from a URL (with SSRF protection: blocks private IPs/localhost)
 21. `src/lib/ai/models.ts` — curated model list for the selector
@@ -75,7 +74,6 @@
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase dashboard |
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase dashboard |
 | `OPENROUTER_API_KEY` | openrouter.ai |
-| `TAVILY_API_KEY` | tavily.com (free tier) |
 
 **Curated models**: Gemini 2.0 Flash (default), Gemini 2.5 Pro, Claude 3.5 Sonnet/Haiku, GPT-4o/mini, Llama 4 Scout, DeepSeek Chat v3
 

@@ -16,7 +16,6 @@ import {
 
 const TOOL_ICONS: Record<string, React.ReactNode> = {
   calculator: <Calculator className="w-3.5 h-3.5" />,
-  web_search: <Search className="w-3.5 h-3.5" />,
   weather: <Cloud className="w-3.5 h-3.5" />,
   wikipedia: <BookOpen className="w-3.5 h-3.5" />,
   url_reader: <Link className="w-3.5 h-3.5" />,
@@ -24,7 +23,6 @@ const TOOL_ICONS: Record<string, React.ReactNode> = {
 
 const TOOL_NAMES: Record<string, string> = {
   calculator: "Calculator",
-  web_search: "Web Search",
   weather: "Weather",
   wikipedia: "Wikipedia",
   url_reader: "URL Reader",

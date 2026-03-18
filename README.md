@@ -7,7 +7,6 @@ A multi-model AI chat application built to demonstrate the difference in LLM res
 - **Multiple LLMs via OpenRouter** — switch between models from Google, Anthropic, OpenAI, Meta, and DeepSeek in a single interface (Gemini 2.0 Flash, Gemini 2.5 Pro, Claude 3.5 Sonnet/Haiku, GPT-4o/Mini, Llama 4 Scout, DeepSeek Chat v3)
 - **Toggleable tools** — enable or disable individual tools per session to observe their effect on responses:
   - **Calculator** — precise math, algebra, trigonometry, and unit conversions
-  - **Web Search** — live web results via Tavily
   - **Weather** — current conditions and forecasts for any city
   - **Wikipedia** — factual lookups from Wikipedia
   - **URL Reader** — fetch and read the content of any URL
@@ -30,7 +29,6 @@ A multi-model AI chat application built to demonstrate the difference in LLM res
 - Node.js 18+
 - A [Supabase](https://supabase.com) project (for auth and session storage)
 - An [OpenRouter](https://openrouter.ai) API key (for LLM access)
-- A [Tavily](https://tavily.com) API key (optional, required for Web Search tool)
 
 ### Setup
 
@@ -47,7 +45,7 @@ NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
 ```
 
-OpenRouter and Tavily API keys are entered at runtime through the in-app API Key modal — no need to hard-code them.
+The OpenRouter API key is entered at runtime through the in-app API Key modal — no need to hard-code it.
 
 3. Apply the database migrations to your Supabase project:
 
@@ -67,4 +65,4 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new)
 
-Set the same environment variables (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`) in your Vercel project settings. API keys for OpenRouter and Tavily are managed per-user at runtime.
+Set the same environment variables (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`) in your Vercel project settings. The OpenRouter API key is managed per-user at runtime.

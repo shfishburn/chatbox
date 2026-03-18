@@ -2,7 +2,6 @@ import type { ChatCompletionTool } from "../openrouter";
 import { zodToJsonSchema } from "zod-to-json-schema";
 import type { z } from "zod";
 import { calculatorTool } from "./calculator";
-import { webSearchTool } from "./webSearch";
 import { weatherTool } from "./weather";
 import { wikipediaTool } from "./wikipedia";
 import { urlReaderTool } from "./urlReader";
@@ -17,7 +16,6 @@ type ToolSchemaLike = {
 
 export const ALL_TOOLS = {
   calculator: calculatorTool,
-  web_search: webSearchTool,
   weather: weatherTool,
   wikipedia: wikipediaTool,
   url_reader: urlReaderTool,
@@ -55,13 +53,6 @@ export const TOOL_META: ToolMeta[] = [
     description:
       "Evaluate math expressions, algebra, trigonometry, unit conversions",
     icon: "calculator",
-  },
-  {
-    id: "web_search",
-    name: "Web Search",
-    description:
-      "Search the web for current news and information (requires Tavily API key)",
-    icon: "search",
   },
   {
     id: "weather",
