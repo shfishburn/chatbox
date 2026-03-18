@@ -2,12 +2,14 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import type { Model } from "@/lib/ai/models";
 
-const MODEL_BLACKLIST = new Set([
+const MODEL_BLACKLIST = [
   "arcee-ai/trinity-large-preview:free",
   "meta-llama/llama-3.3-70b-instruct:free",
   "minimax/minimax-m2.5:free",
   "mistralai/mistral-small-3.1-24b-instruct:free",
-]);
+  "qwen/",
+  "openai/",
+];
 
 interface OpenRouterModel {
   id: string;
@@ -72,7 +74,7 @@ export async function GET(req: Request) {
         m.supported_parameters?.includes("tools") &&
         m.pricing?.prompt === "0" &&
         m.pricing?.completion === "0" &&
-        !MODEL_BLACKLIST.has(m.id),
+        !MODEL_BLACKLIST.find((id) => m.id.startsWith(id)),
     )
     .map((m) => ({
       id: m.id,
