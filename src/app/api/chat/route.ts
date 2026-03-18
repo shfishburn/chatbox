@@ -140,7 +140,7 @@ async function runWithTools(
         : {}),
     });
 
-    const choice = response.choices[0];
+    const choice = response.choices?.[0];
     if (!choice) break;
     const assistantMsg = choice.message;
 
