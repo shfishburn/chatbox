@@ -6,6 +6,7 @@ const MODEL_BLACKLIST = new Set([
   "arcee-ai/trinity-large-preview:free",
   "meta-llama/llama-3.3-70b-instruct:free",
   "minimax/minimax-m2.5:free",
+  "mistralai/mistral-small-3.1-24b-instruct:free",
 ]);
 
 interface OpenRouterModel {

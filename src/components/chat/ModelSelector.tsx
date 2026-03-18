@@ -20,9 +20,7 @@ export default function ModelSelector({ value, onChange }: Props) {
   const { apiKey } = useApiKey();
 
   const currentModel = models.find((m) => m.id === value);
-  const displayName = value
-    ? (currentModel?.name ?? value.split("/").pop() ?? value)
-    : "Select a model";
+  const displayName = value ? (currentModel?.id ?? value) : "Select a model";
 
   useEffect(() => {
     let cancelled = false;
