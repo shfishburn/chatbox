@@ -144,7 +144,7 @@ export default function ModelSelector({ value, onChange }: Props) {
                               : "text-foreground",
                           )}
                         >
-                          {model.name}
+                          {model.id}
                         </span>
                         {model.contextWindow && (
                           <span className="text-xs text-neutral-400 shrink-0 ml-2">
@@ -154,7 +154,7 @@ export default function ModelSelector({ value, onChange }: Props) {
                       </div>
                       {model.description && (
                         <p className="text-xs text-neutral-500 mt-0.5 line-clamp-2">
-                          {model.description}
+                          {model.name} - {model.description}
                         </p>
                       )}
                     </div>
