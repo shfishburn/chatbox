@@ -1,4 +1,4 @@
-import { tool } from "ai";
+import { tool } from "./tool";
 import { z } from "zod";
 
 // Allowed external URL check — blocks private IP ranges and localhost (SSRF protection per OWASP)

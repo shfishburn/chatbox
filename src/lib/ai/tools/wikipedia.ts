@@ -1,4 +1,4 @@
-import { tool } from "ai";
+import { tool } from "./tool";
 import { z } from "zod";
 
 export const wikipediaTool = tool({

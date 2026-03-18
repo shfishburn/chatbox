@@ -1,6 +1,6 @@
 "use client";
 
-import type { Message } from "@ai-sdk/react";
+import type { Message, ToolInvocation } from "@/lib/ai/types";
 import { cn } from "@/lib/utils";
 import { Bot, User } from "lucide-react";
 import ToolCallDisplay from "./ToolCallDisplay";
@@ -33,7 +33,7 @@ export default function MessageItem({ message }: Props) {
       </div>
       <div className="flex-1 min-w-0 space-y-3">
         {/* Tool call parts */}
-        {message.toolInvocations?.map((inv) => (
+        {message.toolInvocations?.map((inv: ToolInvocation) => (
           <ToolCallDisplay key={inv.toolCallId} invocation={inv} />
         ))}
         {/* Text content */}
@@ -55,11 +55,7 @@ export default function MessageItem({ message }: Props) {
 }
 
 function getTextContent(message: Message): string {
-  if (typeof message.content === "string") return message.content;
-  if (Array.isArray(message.content)) {
-    return message.content.map((p) => p.text).join("\n");
-  }
-  return "";
+  return message.content;
 }
 
 /** Minimal Markdown renderer (bold, code, line breaks) — no external dep */

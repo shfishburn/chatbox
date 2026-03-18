@@ -1,9 +1,19 @@
+import type OpenAI from "openai";
+import { zodToJsonSchema } from "zod-to-json-schema";
+import type { z } from "zod";
 import { calculatorTool } from "./calculator";
 import { webSearchTool } from "./webSearch";
 import { weatherTool } from "./weather";
 import { wikipediaTool } from "./wikipedia";
 import { urlReaderTool } from "./urlReader";
-import type { Tool } from "ai";
+import type { Tool } from "./tool";
+
+export type { Tool };
+
+type ToolSchemaLike = {
+  description: string;
+  parameters: z.ZodTypeAny;
+};
 
 export const ALL_TOOLS = {
   calculator: calculatorTool,
@@ -11,7 +21,25 @@ export const ALL_TOOLS = {
   weather: weatherTool,
   wikipedia: wikipediaTool,
   url_reader: urlReaderTool,
-} as Record<string, Tool>;
+};
+
+export type AnyTool = (typeof ALL_TOOLS)[keyof typeof ALL_TOOLS];
+
+export function toOpenAITools(
+  tools: Record<string, ToolSchemaLike>,
+): OpenAI.ChatCompletionTool[] {
+  return Object.entries(tools).map(([name, t]) => {
+    const { $schema, ...parameters } = zodToJsonSchema(t.parameters) as {
+      $schema?: string;
+      [key: string]: unknown;
+    };
+    void $schema;
+    return {
+      type: "function" as const,
+      function: { name, description: t.description, parameters },
+    };
+  });
+}
 
 export interface ToolMeta {
   id: string;

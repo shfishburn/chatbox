@@ -2,8 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import type { Message } from "@ai-sdk/react";
-import type { CoreMessage, ToolInvocation } from "ai";
+import type { Message, CoreMessage, ToolInvocation } from "@/lib/ai/types";
 import { useApiKey } from "@/lib/apiKeyStore";
 import MessageList from "./MessageList";
 import ChatInput from "./ChatInput";

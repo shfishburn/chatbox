@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { ToolInvocation } from "ai";
+import type { ToolInvocation } from "@/lib/ai/types";
 import { cn } from "@/lib/utils";
 import {
   Calculator,
@@ -36,8 +36,7 @@ interface Props {
 
 export default function ToolCallDisplay({ invocation }: Props) {
   const [expanded, setExpanded] = useState(false);
-  const isPending =
-    invocation.state === "partial-call" || invocation.state === "call";
+  const isPending = invocation.state === "call";
   const name = TOOL_NAMES[invocation.toolName] ?? invocation.toolName;
   const icon = TOOL_ICONS[invocation.toolName] ?? (
     <Search className="w-3.5 h-3.5" />
@@ -94,7 +93,8 @@ export default function ToolCallDisplay({ invocation }: Props) {
   );
 }
 
-function formatArgs(args: Record<string, unknown>): string {
+function formatArgs(args: unknown): string {
+  if (!args || typeof args !== "object") return "";
   const entries = Object.entries(args);
   if (!entries.length) return "";
   const [, value] = entries[0];

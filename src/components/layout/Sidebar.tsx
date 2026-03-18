@@ -7,7 +7,6 @@ import type { User } from "@supabase/supabase-js";
 import type { ChatSession } from "@/lib/supabase/types";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
-import ThemeToggle from "@/components/ui/ThemeToggle";
 import { useSidebarStore } from "@/components/layout/sidebarStore";
 import {
   MessageSquare,

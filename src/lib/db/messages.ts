@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import type { DbMessage } from "@/lib/supabase/types";
-import type { CoreMessage } from "ai";
+import type { CoreMessage } from "@/lib/ai/types";
 
 export async function getMessages(sessionId: string): Promise<CoreMessage[]> {
   const supabase = await createClient();

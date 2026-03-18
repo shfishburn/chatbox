@@ -14,7 +14,7 @@ interface Props {
 export default function ModelSelector({ value, onChange }: Props) {
   const [open, setOpen] = useState(false);
   const [models, setModels] = useState<Model[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const { apiKey } = useApiKey();
@@ -26,8 +26,6 @@ export default function ModelSelector({ value, onChange }: Props) {
 
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
-    setError(null);
 
     const headers: Record<string, string> = {};
     if (apiKey) headers["x-openrouter-key"] = apiKey;

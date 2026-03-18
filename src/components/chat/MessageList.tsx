@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import type { Message } from "@ai-sdk/react";
+import type { Message } from "@/lib/ai/types";
 import MessageItem from "./MessageItem";
 import { Bot } from "lucide-react";
 
