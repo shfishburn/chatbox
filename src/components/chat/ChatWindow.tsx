@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Message, CoreMessage, ToolInvocation } from "@/lib/ai/types";
 import { useApiKey } from "@/lib/apiKeyStore";
+import { getPreferences, savePreferences } from "@/lib/preferencesStore";
 import MessageList from "./MessageList";
 import ChatInput from "./ChatInput";
 import ToolsPanel from "./ToolsPanel";
@@ -100,10 +101,19 @@ export default function ChatWindow({
   const router = useRouter();
   const { apiKey } = useApiKey();
   const [requestError, setRequestError] = useState<string | null>(null);
-  const [model, setModel] = useState(initialModel);
-  const [enabledTools, setEnabledTools] = useState<string[]>(initialTools);
+  const isNewSession = !initialSessionId;
+  const [prefs] = useState(getPreferences);
+  const [model, setModel] = useState(
+    initialModel ?? (isNewSession ? prefs.model : undefined),
+  );
+  const resolvedTools =
+    isNewSession && initialTools.length === 0
+      ? (prefs.enabledTools ?? [])
+      : initialTools;
+  const [enabledTools, setEnabledTools] = useState<string[]>(resolvedTools);
   const [sessionId, setSessionId] = useState(initialSessionId);
   const sessionRedirected = useRef(false);
+  const prefsInitialized = useRef(false);
 
   const [coreMessages, setCoreMessages] =
     useState<CoreMessage[]>(initialMessages);
@@ -116,6 +126,14 @@ export default function ChatWindow({
   useEffect(() => {
     if (apiKey) setRequestError(null);
   }, [apiKey]);
+
+  useEffect(() => {
+    if (!prefsInitialized.current) {
+      prefsInitialized.current = true;
+      return;
+    }
+    savePreferences({ model, enabledTools });
+  }, [model, enabledTools]);
 
   useEffect(() => {
     if (!sessionId) return;
