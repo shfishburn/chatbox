@@ -67,6 +67,7 @@ export default function Sidebar({
       if (pathname === `/chat/${id}`) {
         router.push("/chat");
       }
+      router.refresh();
     });
   }
 
