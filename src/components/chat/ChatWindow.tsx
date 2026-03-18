@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useChat } from "@ai-sdk/react";
-import type { CoreMessage } from "ai";
+import type { Message } from "@ai-sdk/react";
+import type { CoreMessage, ToolInvocation } from "ai";
 import { useApiKey } from "@/lib/apiKeyStore";
 import MessageList from "./MessageList";
 import ChatInput from "./ChatInput";
@@ -15,6 +15,81 @@ interface Props {
   initialModel?: string;
   initialTools?: string[];
   initialMessages?: CoreMessage[];
+}
+
+/** Convert CoreMessage[] to the Message[] format expected by the UI components */
+function coreToMessages(coreMessages: CoreMessage[]): Message[] {
+  const result: Message[] = [];
+  for (let i = 0; i < coreMessages.length; i++) {
+    const msg = coreMessages[i];
+    if (msg.role === "system") continue;
+
+    if (msg.role === "user") {
+      const content =
+        typeof msg.content === "string"
+          ? msg.content
+          : (msg.content as Array<{ type: string; text?: string }>)
+              .filter((p) => p.type === "text" && p.text != null)
+              .map((p) => p.text!)
+              .join("\n");
+      result.push({ id: String(i), role: "user", content });
+    } else if (msg.role === "assistant") {
+      const parts = (
+        Array.isArray(msg.content)
+          ? msg.content
+          : [{ type: "text", text: msg.content as string }]
+      ) as Array<{
+        type: string;
+        text?: string;
+        toolCallId?: string;
+        toolName?: string;
+        args?: unknown;
+      }>;
+      const text = parts
+        .filter((p) => p.type === "text")
+        .map((p) => p.text ?? "")
+        .join("");
+      const toolCalls = parts.filter((p) => p.type === "tool-call");
+      const toolInvocations: ToolInvocation[] = toolCalls.map((tc) => {
+        for (let j = i + 1; j < coreMessages.length; j++) {
+          const toolMsg = coreMessages[j];
+          if (toolMsg.role === "tool" && Array.isArray(toolMsg.content)) {
+            const res = (
+              toolMsg.content as Array<{
+                toolCallId: string;
+                toolName: string;
+                result: unknown;
+              }>
+            ).find((r) => r.toolCallId === tc.toolCallId);
+            if (res) {
+              return {
+                state: "result" as const,
+                toolCallId: tc.toolCallId!,
+                toolName: tc.toolName!,
+                args: tc.args,
+                result: res.result,
+              };
+            }
+          }
+        }
+        return {
+          state: "call" as const,
+          toolCallId: tc.toolCallId!,
+          toolName: tc.toolName!,
+          args: tc.args,
+        };
+      });
+      result.push({
+        id: String(i),
+        role: "assistant",
+        content: text,
+        toolInvocations:
+          toolInvocations.length > 0 ? toolInvocations : undefined,
+      });
+    }
+    // "tool" role messages are embedded in assistant's toolInvocations; skip top-level
+  }
+  return result;
 }
 
 export default function ChatWindow({
@@ -31,11 +106,16 @@ export default function ChatWindow({
   const [sessionId, setSessionId] = useState(initialSessionId);
   const sessionRedirected = useRef(false);
 
+  const [coreMessages, setCoreMessages] =
+    useState<CoreMessage[]>(initialMessages);
+  const [input, setInput] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  const messages = useMemo(() => coreToMessages(coreMessages), [coreMessages]);
+
   useEffect(() => {
-    // Clear stale missing-key guidance once a key is provided.
-    if (apiKey) {
-      setRequestError(null);
-    }
+    if (apiKey) setRequestError(null);
   }, [apiKey]);
 
   useEffect(() => {
@@ -54,47 +134,102 @@ export default function ChatWindow({
     return () => controller.abort();
   }, [sessionId, model, enabledTools]);
 
-  const { messages, input, setInput, handleSubmit, isLoading, error, stop } =
-    useChat({
-      api: "/api/chat",
-      initialMessages: initialMessages as never,
-      headers: apiKey ? { "x-openrouter-key": apiKey } : {},
-      body: { sessionId, model, enabledTools },
-      onResponse: async (response) => {
+  const stop = useCallback(() => {
+    abortControllerRef.current?.abort();
+    setIsLoading(false);
+  }, []);
+
+  const syncSessionFromResponse = useCallback(
+    (response: Response) => {
+      const newSessionId = response.headers.get("X-Session-Id");
+      const isNew = response.headers.get("X-Is-New-Session") === "true";
+
+      if (newSessionId && isNew && !sessionRedirected.current) {
+        sessionRedirected.current = true;
+        setSessionId(newSessionId);
+        router.replace(`/chat/${newSessionId}`);
+        router.refresh();
+      }
+    },
+    [router],
+  );
+
+  const handleSubmit = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      const trimmed = input.trim();
+      if (!trimmed || isLoading) return;
+
+      const userCoreMessage: CoreMessage = { role: "user", content: trimmed };
+      const updatedCoreMessages = [...coreMessages, userCoreMessage];
+      setCoreMessages(updatedCoreMessages);
+      setInput("");
+      setIsLoading(true);
+      setRequestError(null);
+
+      const abortController = new AbortController();
+      abortControllerRef.current = abortController;
+
+      try {
+        const response = await fetch("/api/chat", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(apiKey ? { "x-openrouter-key": apiKey } : {}),
+          },
+          body: JSON.stringify({
+            messages: updatedCoreMessages,
+            sessionId,
+            model,
+            enabledTools,
+          }),
+          signal: abortController.signal,
+        });
+
         if (!response.ok) {
-          if (response.status === 400) {
-            try {
-              const payload = (await response.clone().json()) as {
-                error?: string;
-              };
-
-              if (payload.error === "OpenRouter API key is required.") {
-                setRequestError(
-                  "Add your OpenRouter API key in Sidebar > API Key to continue.",
-                );
-                return;
-              }
-            } catch {
-              // Fall through to generic error handling.
+          syncSessionFromResponse(response);
+          let errorMsg = `Request failed (${response.status})`;
+          try {
+            const payload = (await response.json()) as { error?: string };
+            if (payload.error === "OpenRouter API key is required.") {
+              setRequestError(
+                "Add your OpenRouter API key in Sidebar > API Key to continue.",
+              );
+              return;
             }
+            if (payload.error) errorMsg = payload.error;
+          } catch {
+            // ignore JSON parse errors
           }
-
-          setRequestError(null);
+          setRequestError(errorMsg);
           return;
         }
 
-        setRequestError(null);
-        const newSessionId = response.headers.get("X-Session-Id");
-        const isNew = response.headers.get("X-Is-New-Session") === "true";
-        if (newSessionId && isNew && !sessionRedirected.current) {
-          sessionRedirected.current = true;
-          setSessionId(newSessionId);
-          // Navigate to the new URL without full reload — push to history
-          router.replace(`/chat/${newSessionId}`);
-          router.refresh(); // refresh sidebar session list
+        const data = (await response.json()) as { messages: CoreMessage[] };
+        syncSessionFromResponse(response);
+
+        setCoreMessages([...updatedCoreMessages, ...data.messages]);
+      } catch (err) {
+        if (err instanceof Error && err.name !== "AbortError") {
+          setRequestError("An error occurred. Please try again.");
+          return;
         }
-      },
-    });
+      } finally {
+        abortControllerRef.current = null;
+        setIsLoading(false);
+      }
+    },
+    [
+      input,
+      isLoading,
+      coreMessages,
+      apiKey,
+      sessionId,
+      model,
+      enabledTools,
+      syncSessionFromResponse,
+    ],
+  );
 
   return (
     <div className="flex flex-col h-full">
@@ -115,7 +250,7 @@ export default function ChatWindow({
         onSubmit={handleSubmit}
         isLoading={isLoading}
         onStop={stop}
-        error={requestError ?? error?.message ?? null}
+        error={requestError}
       />
     </div>
   );

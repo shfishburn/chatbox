@@ -1,4 +1,4 @@
-import { streamText, type CoreMessage } from "ai";
+import { generateText, type CoreMessage } from "ai";
 import { createClient } from "@/lib/supabase/server";
 import { createOpenRouter } from "@/lib/ai/openrouter";
 import { ALL_TOOLS } from "@/lib/ai/tools";
@@ -85,42 +85,48 @@ export async function POST(req: Request) {
         )
       : undefined;
 
-  const result = streamText({
-    model: openrouter(model),
-    messages,
-    tools: toolsToUse,
-    maxSteps: 5,
-    onError: ({ error }) => {
-      console.error("[chat/route] streamText error:", error);
-    },
-    onFinish: async ({ response }) => {
-      // Save all new assistant messages (including tool calls / results)
-      for (const msg of response.messages) {
-        if (msg.role === "assistant" || msg.role === "tool") {
-          await saveMessage(sessionId!, msg as CoreMessage);
-        }
+  try {
+    const result = await generateText({
+      model: openrouter(model),
+      messages,
+      tools: toolsToUse,
+      maxSteps: 5,
+    });
+
+    // Save all new assistant messages (including tool calls / results)
+    for (const msg of result.response.messages) {
+      if (msg.role === "assistant" || msg.role === "tool") {
+        await saveMessage(sessionId!, msg as CoreMessage);
       }
-      // Bump session updated_at (and update model/tools if they changed)
-      await updateSession(sessionId!, {
-        model,
-        tools_enabled: enabledTools,
-      });
-    },
-  });
+    }
+    // Bump session updated_at (and update model/tools if they changed)
+    await updateSession(sessionId!, {
+      model,
+      tools_enabled: enabledTools,
+    });
 
-  // Attach session ID to response headers so the client can redirect
-  const dataStream = result.toDataStreamResponse({
-    getErrorMessage: (error) => {
-      if (error instanceof Error) return error.message;
-      return String(error);
-    },
-  });
-  const headers = new Headers(dataStream.headers);
-  headers.set("X-Session-Id", sessionId!);
-  headers.set("X-Is-New-Session", isNewSession ? "true" : "false");
-
-  return new Response(dataStream.body, {
-    status: dataStream.status,
-    headers,
-  });
+    return Response.json(
+      { messages: result.response.messages },
+      {
+        headers: {
+          "X-Session-Id": sessionId!,
+          "X-Is-New-Session": isNewSession ? "true" : "false",
+        },
+      },
+    );
+  } catch (error) {
+    console.error("[chat/route] generateText error:", error);
+    const message =
+      error instanceof Error ? error.message : "An error occurred";
+    return Response.json(
+      { error: message },
+      {
+        status: 500,
+        headers: {
+          "X-Session-Id": sessionId!,
+          "X-Is-New-Session": isNewSession ? "true" : "false",
+        },
+      },
+    );
+  }
 }
