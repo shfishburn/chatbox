@@ -133,6 +133,8 @@ async function runWithTools(
     const response = await openai.chat.completions.create({
       model,
       messages: currentMessages,
+      temperature: 0,
+      top_p: 1,
       ...(openAITools?.length
         ? { tools: openAITools, tool_choice: "auto" as const }
         : {}),

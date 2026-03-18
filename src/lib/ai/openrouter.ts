@@ -42,6 +42,8 @@ export interface OpenRouterClient {
         messages: ChatCompletionMessage[];
         tools?: ChatCompletionTool[];
         tool_choice?: "auto";
+        temperature?: number;
+        top_p?: number;
       }): Promise<ChatCompletionResponse>;
     };
   };
