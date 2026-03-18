@@ -3,14 +3,15 @@
 import { useEffect, useRef } from "react";
 import type { Message } from "@/lib/ai/types";
 import MessageItem from "./MessageItem";
-import { Bot } from "lucide-react";
+import { Bot, RotateCcw } from "lucide-react";
 
 interface Props {
   messages: Message[];
   isLoading: boolean;
+  onRetry?: () => void;
 }
 
-export default function MessageList({ messages, isLoading }: Props) {
+export default function MessageList({ messages, isLoading, onRetry }: Props) {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -42,6 +43,20 @@ export default function MessageList({ messages, isLoading }: Props) {
         {messages.map((message, msgIdx) => (
           <MessageItem key={msgIdx} message={message} />
         ))}
+        {!isLoading &&
+          !!onRetry &&
+          messages.length > 0 &&
+          messages[messages.length - 1].role === "user" && (
+            <div className="flex justify-end">
+              <button
+                onClick={onRetry}
+                className="flex items-center gap-1.5 text-xs text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300 transition-colors"
+              >
+                <RotateCcw className="w-3 h-3" />
+                Retry
+              </button>
+            </div>
+          )}
         {isLoading && (
           <div className="flex items-start gap-3">
             <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center shrink-0 mt-0.5">

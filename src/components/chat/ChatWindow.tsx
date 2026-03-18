@@ -154,15 +154,22 @@ export default function ChatWindow({
   );
 
   const handleSubmit = useCallback(
-    async (e: React.FormEvent) => {
-      e.preventDefault();
-      const trimmed = input.trim();
-      if (!trimmed || isLoading) return;
+    async (e?: React.FormEvent) => {
+      e?.preventDefault();
+      if (isLoading) return;
 
-      const userCoreMessage: CoreMessage = { role: "user", content: trimmed };
-      const updatedCoreMessages = [...coreMessages, userCoreMessage];
-      setCoreMessages(updatedCoreMessages);
-      setInput("");
+      const trimmed = input.trim();
+      let updatedCoreMessages: CoreMessage[];
+
+      if (trimmed) {
+        const userCoreMessage: CoreMessage = { role: "user", content: trimmed };
+        updatedCoreMessages = [...coreMessages, userCoreMessage];
+        setCoreMessages(updatedCoreMessages);
+        setInput("");
+      } else {
+        updatedCoreMessages = [...coreMessages];
+      }
+
       setIsLoading(true);
       setRequestError(null);
 
@@ -240,7 +247,11 @@ export default function ChatWindow({
       </div>
 
       {/* Messages */}
-      <MessageList messages={messages} isLoading={isLoading} />
+      <MessageList
+        messages={messages}
+        isLoading={isLoading}
+        onRetry={input ? undefined : handleSubmit}
+      />
 
       {/* Input */}
       <ChatInput
