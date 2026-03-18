@@ -1,6 +1,6 @@
-import { tool } from "./tool";
-import { z } from "zod";
 import { evaluate } from "mathjs";
+import { z } from "zod";
+import { tool } from "./tool";
 
 export const calculatorTool = tool({
   description:

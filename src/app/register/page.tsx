@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { Loader2, MessageSquare } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
-import { MessageSquare, Loader2 } from "lucide-react";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -68,12 +68,10 @@ export default function RegisterPage() {
             <span className="text-2xl font-bold text-foreground">ChatBox</span>
           </div>
           <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border border-neutral-200 dark:border-neutral-800 p-8">
-            <h1 className="text-xl font-semibold text-foreground mb-2">
-              Check your email
-            </h1>
+            <h1 className="text-xl font-semibold text-foreground mb-2">Check your email</h1>
             <p className="text-neutral-500 text-sm">
-              We sent a confirmation link to <strong>{email}</strong>. Click it
-              to activate your account.
+              We sent a confirmation link to <strong>{email}</strong>. Click it to activate your
+              account.
             </p>
           </div>
         </div>
@@ -93,9 +91,7 @@ export default function RegisterPage() {
         </div>
 
         <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border border-neutral-200 dark:border-neutral-800 p-8">
-          <h1 className="text-xl font-semibold text-foreground mb-6">
-            Create an account
-          </h1>
+          <h1 className="text-xl font-semibold text-foreground mb-6">Create an account</h1>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
@@ -195,10 +191,7 @@ export default function RegisterPage() {
 
         <p className="text-center text-sm text-neutral-500 mt-4">
           Already have an account?{" "}
-          <Link
-            href="/login"
-            className="text-blue-600 hover:underline font-medium"
-          >
+          <Link href="/login" className="text-blue-600 hover:underline font-medium">
             Sign in
           </Link>
         </p>

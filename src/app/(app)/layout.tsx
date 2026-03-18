@@ -1,15 +1,11 @@
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
-import { getSessions } from "@/lib/db/sessions";
-import Sidebar from "@/components/layout/Sidebar";
 import MobileHeader from "@/components/layout/MobileHeader";
 import MobileSidebarBackdrop from "@/components/layout/MobileSidebarBackdrop";
+import Sidebar from "@/components/layout/Sidebar";
+import { getSessions } from "@/lib/db/sessions";
+import { createClient } from "@/lib/supabase/server";
 
-export default async function AppLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
   const {
     data: { user },

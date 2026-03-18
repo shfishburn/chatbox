@@ -30,9 +30,21 @@ export type ToolInvocation =
       result: unknown;
     };
 
+export interface TelemetryStep {
+  step: number;
+  request: {
+    model: string;
+    messages: unknown[];
+    tools?: unknown[];
+  };
+  response: unknown;
+  durationMs: number;
+}
+
 export interface Message {
   id: string;
   role: "user" | "assistant";
   content: string;
   toolInvocations?: ToolInvocation[];
+  telemetry?: TelemetryStep[];
 }

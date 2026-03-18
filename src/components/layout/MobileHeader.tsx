@@ -9,6 +9,7 @@ export default function MobileHeader() {
   return (
     <header className="md:hidden flex items-center gap-3 px-4 py-3 border-b border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shrink-0">
       <button
+        type="button"
         onClick={() => setOpen(!open)}
         className="p-1.5 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-600 dark:text-neutral-400"
         aria-label="Open menu"

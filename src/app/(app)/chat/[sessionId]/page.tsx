@@ -1,8 +1,8 @@
 import { notFound } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
-import { getSession } from "@/lib/db/sessions";
-import { getMessages } from "@/lib/db/messages";
 import ChatWindow from "@/components/chat/ChatWindow";
+import { getMessages } from "@/lib/db/messages";
+import { getSession } from "@/lib/db/sessions";
+import { createClient } from "@/lib/supabase/server";
 
 export default async function ChatSessionPage({
   params,

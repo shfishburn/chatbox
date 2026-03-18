@@ -1,8 +1,8 @@
 "use client";
 
-import { useRef, useEffect } from "react";
+import { AlertCircle, Send, Square } from "lucide-react";
+import { useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
-import { Send, Square, AlertCircle } from "lucide-react";
 
 interface Props {
   input: string;
@@ -13,14 +13,7 @@ interface Props {
   error: string | null;
 }
 
-export default function ChatInput({
-  input,
-  setInput,
-  onSubmit,
-  isLoading,
-  onStop,
-  error,
-}: Props) {
+export default function ChatInput({ input, setInput, onSubmit, isLoading, onStop, error }: Props) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Auto-resize textarea
@@ -28,8 +21,8 @@ export default function ChatInput({
     const ta = textareaRef.current;
     if (!ta) return;
     ta.style.height = "auto";
-    ta.style.height = Math.min(ta.scrollHeight, 200) + "px";
-  }, [input]);
+    ta.style.height = `${Math.min(ta.scrollHeight, 200)}px`;
+  }, []);
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
     if (e.key === "Enter" && !e.shiftKey) {

@@ -42,8 +42,5 @@ export function savePreferences(prefs: ChatPreferences) {
   const current = getPreferences();
   const incoming = normalizePreferences(prefs);
 
-  localStorage.setItem(
-    STORAGE_KEY,
-    JSON.stringify({ ...current, ...incoming }),
-  );
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...current, ...incoming }));
 }

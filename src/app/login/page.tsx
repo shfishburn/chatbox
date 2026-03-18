@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { Loader2, MessageSquare } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
-import { MessageSquare, Loader2 } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -46,9 +46,7 @@ export default function LoginPage() {
         </div>
 
         <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border border-neutral-200 dark:border-neutral-800 p-8">
-          <h1 className="text-xl font-semibold text-foreground mb-6">
-            Sign in to your account
-          </h1>
+          <h1 className="text-xl font-semibold text-foreground mb-6">Sign in to your account</h1>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
@@ -124,10 +122,7 @@ export default function LoginPage() {
 
         <p className="text-center text-sm text-neutral-500 mt-4">
           Don&apos;t have an account?{" "}
-          <Link
-            href="/register"
-            className="text-blue-600 hover:underline font-medium"
-          >
+          <Link href="/register" className="text-blue-600 hover:underline font-medium">
             Sign up
           </Link>
         </p>

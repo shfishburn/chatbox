@@ -1,5 +1,5 @@
-import { tool } from "./tool";
 import { z } from "zod";
+import { tool } from "./tool";
 
 export const weatherTool = tool({
   description:
@@ -7,9 +7,7 @@ export const weatherTool = tool({
   parameters: z.object({
     location: z
       .string()
-      .describe(
-        "City name or location, e.g. 'Paris', 'New York', 'Tokyo, Japan'",
-      ),
+      .describe("City name or location, e.g. 'Paris', 'New York', 'Tokyo, Japan'"),
   }),
   execute: async ({ location }) => {
     try {
@@ -23,8 +21,7 @@ export const weatherTool = tool({
         return { error: `Location "${location}" not found.` };
       }
 
-      const { name, country, latitude, longitude, timezone } =
-        geoData.results[0];
+      const { name, country, latitude, longitude, timezone } = geoData.results[0];
 
       // Step 2: Fetch weather
       const weatherUrl = new URL("https://api.open-meteo.com/v1/forecast");
@@ -41,10 +38,7 @@ export const weatherTool = tool({
           "precipitation",
         ].join(","),
       );
-      weatherUrl.searchParams.set(
-        "daily",
-        "temperature_2m_max,temperature_2m_min,weather_code",
-      );
+      weatherUrl.searchParams.set("daily", "temperature_2m_max,temperature_2m_min,weather_code");
       weatherUrl.searchParams.set("timezone", timezone ?? "auto");
       weatherUrl.searchParams.set("forecast_days", "3");
 
@@ -64,14 +58,12 @@ export const weatherTool = tool({
           precipitation: `${c.precipitation} mm`,
           condition: wmoDescription(c.weather_code),
         },
-        forecast: (weather.daily?.time ?? []).map(
-          (date: string, i: number) => ({
-            date,
-            high: `${weather.daily.temperature_2m_max[i]}°C`,
-            low: `${weather.daily.temperature_2m_min[i]}°C`,
-            condition: wmoDescription(weather.daily.weather_code[i]),
-          }),
-        ),
+        forecast: (weather.daily?.time ?? []).map((date: string, i: number) => ({
+          date,
+          high: `${weather.daily.temperature_2m_max[i]}°C`,
+          low: `${weather.daily.temperature_2m_min[i]}°C`,
+          condition: wmoDescription(weather.daily.weather_code[i]),
+        })),
       };
     } catch (err) {
       return { error: `Weather lookup failed: ${(err as Error).message}` };

@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
 import { getSessions } from "@/lib/db/sessions";
+import { createClient } from "@/lib/supabase/server";
 
 export default async function AppHomePage() {
   const supabase = await createClient();

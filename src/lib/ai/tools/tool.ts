@@ -10,8 +10,6 @@ export interface Tool<TSchema extends z.ZodTypeAny = z.ZodTypeAny> {
   execute: BivariantAsyncFn<z.infer<TSchema>>;
 }
 
-export function tool<TSchema extends z.ZodTypeAny>(
-  config: Tool<TSchema>,
-): Tool<TSchema> {
+export function tool<TSchema extends z.ZodTypeAny>(config: Tool<TSchema>): Tool<TSchema> {
   return config;
 }

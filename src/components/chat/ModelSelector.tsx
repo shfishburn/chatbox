@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { Check, ChevronDown, Loader2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import type { Model } from "@/lib/ai/models";
 import { useApiKey } from "@/lib/apiKeyStore";
 import { cn } from "@/lib/utils";
-import { ChevronDown, Check, Loader2 } from "lucide-react";
 
 interface Props {
   value: string | undefined;
@@ -45,10 +45,7 @@ export default function ModelSelector({ value, onChange }: Props) {
         if (!cancelled) setModels(data.models);
       })
       .catch((err: unknown) => {
-        if (!cancelled)
-          setError(
-            err instanceof Error ? err.message : "Failed to load models",
-          );
+        if (!cancelled) setError(err instanceof Error ? err.message : "Failed to load models");
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -73,6 +70,7 @@ export default function ModelSelector({ value, onChange }: Props) {
   return (
     <div className="relative" ref={panelRef}>
       <button
+        type="button"
         onClick={() => setOpen((o) => !o)}
         className={cn(
           "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors",
@@ -83,10 +81,7 @@ export default function ModelSelector({ value, onChange }: Props) {
       >
         <span className="truncate max-w-[160px]">{displayName}</span>
         <ChevronDown
-          className={cn(
-            "w-3.5 h-3.5 shrink-0 transition-transform",
-            open && "rotate-180",
-          )}
+          className={cn("w-3.5 h-3.5 shrink-0 transition-transform", open && "rotate-180")}
         />
       </button>
 
@@ -104,15 +99,9 @@ export default function ModelSelector({ value, onChange }: Props) {
                 <span className="text-sm">Loading models…</span>
               </div>
             )}
-            {error && (
-              <p className="text-sm text-red-500 px-3 py-4 text-center">
-                {error}
-              </p>
-            )}
+            {error && <p className="text-sm text-red-500 px-3 py-4 text-center">{error}</p>}
             {!loading && !error && models.length === 0 && (
-              <p className="text-sm text-neutral-500 px-3 py-4 text-center">
-                No models available.
-              </p>
+              <p className="text-sm text-neutral-500 px-3 py-4 text-center">No models available.</p>
             )}
             {!loading &&
               !error &&
@@ -120,6 +109,7 @@ export default function ModelSelector({ value, onChange }: Props) {
                 const selected = model.id === value;
                 return (
                   <button
+                    type="button"
                     key={model.id}
                     onClick={() => {
                       onChange(model.id);
@@ -137,9 +127,7 @@ export default function ModelSelector({ value, onChange }: Props) {
                         <span
                           className={cn(
                             "text-sm font-medium",
-                            selected
-                              ? "text-blue-700 dark:text-blue-400"
-                              : "text-foreground",
+                            selected ? "text-blue-700 dark:text-blue-400" : "text-foreground",
                           )}
                         >
                           {model.id}
@@ -156,9 +144,7 @@ export default function ModelSelector({ value, onChange }: Props) {
                         </p>
                       )}
                     </div>
-                    {selected && (
-                      <Check className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
-                    )}
+                    {selected && <Check className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />}
                   </button>
                 );
               })}

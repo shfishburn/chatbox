@@ -1,9 +1,9 @@
 "use client";
 
+import { Bot, RotateCcw } from "lucide-react";
 import { useEffect, useRef } from "react";
 import type { Message } from "@/lib/ai/types";
 import MessageItem from "./MessageItem";
-import { Bot, RotateCcw } from "lucide-react";
 
 interface Props {
   messages: Message[];
@@ -16,7 +16,7 @@ export default function MessageList({ messages, isLoading, onRetry }: Props) {
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, isLoading]);
+  }, []);
 
   if (messages.length === 0) {
     return (
@@ -25,12 +25,10 @@ export default function MessageList({ messages, isLoading, onRetry }: Props) {
           <Bot className="w-8 h-8 text-blue-600 dark:text-blue-400" />
         </div>
         <div>
-          <h2 className="text-lg font-semibold text-foreground mb-1">
-            How can I help?
-          </h2>
+          <h2 className="text-lg font-semibold text-foreground mb-1">How can I help?</h2>
           <p className="text-sm text-neutral-500 max-w-sm">
-            Ask me anything — I can search the web, do math, check the weather,
-            look up Wikipedia, or read any URL.
+            Ask me anything — I can search the web, do math, check the weather, look up Wikipedia,
+            or read any URL.
           </p>
         </div>
       </div>
@@ -40,8 +38,8 @@ export default function MessageList({ messages, isLoading, onRetry }: Props) {
   return (
     <div className="flex-1 overflow-y-auto">
       <div className="max-w-3xl mx-auto px-4 py-6 space-y-6">
-        {messages.map((message, msgIdx) => (
-          <MessageItem key={msgIdx} message={message} />
+        {messages.map((message) => (
+          <MessageItem key={message.id} message={message} />
         ))}
         {!isLoading &&
           !!onRetry &&
@@ -49,6 +47,7 @@ export default function MessageList({ messages, isLoading, onRetry }: Props) {
           messages[messages.length - 1].role === "user" && (
             <div className="flex justify-end">
               <button
+                type="button"
                 onClick={onRetry}
                 className="flex items-center gap-1.5 text-xs text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300 transition-colors"
               >

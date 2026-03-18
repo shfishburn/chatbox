@@ -1,0 +1,18 @@
+{
+  "nodeModulesDir": "auto",
+  "unstable": ["byonm"],
+  "tasks": {
+    "dev": "deno run -A npm:next dev",
+    "build": "deno run -A npm:next build",
+    "start": "deno run -A npm:next start",
+    "check": "deno check src/**/*.ts src/**/*.tsx",
+    "lint": "npx @biomejs/biome check src/",
+    "lint:fix": "npx @biomejs/biome check --fix src/",
+    "format": "npx @biomejs/biome format --write src/",
+    "ci": "npx @biomejs/biome ci src/"
+  },
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "jsxImportSource": "react"
+  }
+}

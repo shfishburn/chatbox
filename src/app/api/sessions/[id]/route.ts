@@ -1,9 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 
-export async function PATCH(
-  req: Request,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const supabase = await createClient();
 
@@ -22,8 +19,7 @@ export async function PATCH(
 
   const updates: { model?: string; tools_enabled?: string[] } = {};
   if (typeof body.model === "string") updates.model = body.model;
-  if (Array.isArray(body.tools_enabled))
-    updates.tools_enabled = body.tools_enabled;
+  if (Array.isArray(body.tools_enabled)) updates.tools_enabled = body.tools_enabled;
 
   if (Object.keys(updates).length === 0) {
     return new Response("No valid updates provided", { status: 400 });
@@ -43,10 +39,7 @@ export async function PATCH(
   return new Response(null, { status: 204 });
 }
 
-export async function DELETE(
-  _req: Request,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const supabase = await createClient();
 

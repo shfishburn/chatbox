@@ -1,14 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import type { Message, CoreMessage, ToolInvocation } from "@/lib/ai/types";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { CoreMessage, Message, TelemetryStep, ToolInvocation } from "@/lib/ai/types";
 import { useApiKey } from "@/lib/apiKeyStore";
 import { getPreferences, savePreferences } from "@/lib/preferencesStore";
-import MessageList from "./MessageList";
 import ChatInput from "./ChatInput";
-import ToolsPanel from "./ToolsPanel";
+import MessageList from "./MessageList";
 import ModelSelector from "./ModelSelector";
+import ToolsPanel from "./ToolsPanel";
 
 interface Props {
   sessionId?: string;
@@ -17,14 +17,23 @@ interface Props {
   initialMessages?: CoreMessage[];
 }
 
-/** Convert CoreMessage[] to the Message[] format expected by the UI components */
-function coreToMessages(coreMessages: CoreMessage[]): Message[] {
+/**
+ * Convert CoreMessage[] to the Message[] format expected by the UI.
+ * Consecutive assistant turns (from multi-step tool calling) are collapsed
+ * into a single Message with all tool invocations + the final text.
+ */
+function coreToMessages(coreMessages: CoreMessage[], telemetry?: TelemetryStep[]): Message[] {
   const result: Message[] = [];
+  let pendingInvocations: ToolInvocation[] = [];
+  let turnId = 0;
+
   for (let i = 0; i < coreMessages.length; i++) {
     const msg = coreMessages[i];
     if (msg.role === "system") continue;
 
     if (msg.role === "user") {
+      // Flush any dangling assistant state (shouldn't happen, but safety)
+      pendingInvocations = [];
       const content =
         typeof msg.content === "string"
           ? msg.content
@@ -32,12 +41,10 @@ function coreToMessages(coreMessages: CoreMessage[]): Message[] {
               .filter((p) => p.type === "text" && p.text != null)
               .map((p) => p.text!)
               .join("\n");
-      result.push({ id: String(i), role: "user", content });
+      result.push({ id: String(turnId++), role: "user", content });
     } else if (msg.role === "assistant") {
       const parts = (
-        Array.isArray(msg.content)
-          ? msg.content
-          : [{ type: "text", text: msg.content as string }]
+        Array.isArray(msg.content) ? msg.content : [{ type: "text", text: msg.content as string }]
       ) as Array<{
         type: string;
         text?: string;
@@ -50,7 +57,9 @@ function coreToMessages(coreMessages: CoreMessage[]): Message[] {
         .map((p) => p.text ?? "")
         .join("");
       const toolCalls = parts.filter((p) => p.type === "tool-call");
-      const toolInvocations: ToolInvocation[] = toolCalls.map((tc) => {
+
+      // Resolve tool call → result pairs
+      const invocations: ToolInvocation[] = toolCalls.map((tc) => {
         for (let j = i + 1; j < coreMessages.length; j++) {
           const toolMsg = coreMessages[j];
           if (toolMsg.role === "tool" && Array.isArray(toolMsg.content)) {
@@ -79,13 +88,37 @@ function coreToMessages(coreMessages: CoreMessage[]): Message[] {
           args: tc.args,
         };
       });
+
+      pendingInvocations.push(...invocations);
+
+      // If this assistant message has tool calls but no final text,
+      // it's an intermediate step — accumulate and continue
+      const hasToolCalls = toolCalls.length > 0;
+      const hasText = text.trim().length > 0;
+
+      if (hasToolCalls && !hasText) {
+        // Check if next non-tool message is another assistant (continuation)
+        let nextIdx = i + 1;
+        while (nextIdx < coreMessages.length && coreMessages[nextIdx].role === "tool") {
+          nextIdx++;
+        }
+        if (nextIdx < coreMessages.length && coreMessages[nextIdx].role === "assistant") {
+          continue; // accumulate into next assistant message
+        }
+      }
+
+      // Emit collapsed message
+      const allInvocations = pendingInvocations;
+      pendingInvocations = [];
       result.push({
-        id: String(i),
+        id: String(turnId++),
         role: "assistant",
         content: text,
-        toolInvocations:
-          toolInvocations.length > 0 ? toolInvocations : undefined,
+        toolInvocations: allInvocations.length > 0 ? allInvocations : undefined,
+        telemetry,
       });
+      // Only attach telemetry to the first assistant turn after user message
+      telemetry = undefined;
     }
     // "tool" role messages are embedded in assistant's toolInvocations; skip top-level
   }
@@ -103,25 +136,24 @@ export default function ChatWindow({
   const [requestError, setRequestError] = useState<string | null>(null);
   const isNewSession = !initialSessionId;
   const [prefs] = useState(getPreferences);
-  const [model, setModel] = useState(
-    initialModel ?? (isNewSession ? prefs.model : undefined),
-  );
+  const [model, setModel] = useState(initialModel ?? (isNewSession ? prefs.model : undefined));
   const resolvedTools =
-    isNewSession && initialTools.length === 0
-      ? (prefs.enabledTools ?? [])
-      : initialTools;
+    isNewSession && initialTools.length === 0 ? (prefs.enabledTools ?? []) : initialTools;
   const [enabledTools, setEnabledTools] = useState<string[]>(resolvedTools);
   const [sessionId, setSessionId] = useState(initialSessionId);
   const sessionRedirected = useRef(false);
   const prefsInitialized = useRef(false);
 
-  const [coreMessages, setCoreMessages] =
-    useState<CoreMessage[]>(initialMessages);
+  const [coreMessages, setCoreMessages] = useState<CoreMessage[]>(initialMessages);
+  const [latestTelemetry, setLatestTelemetry] = useState<TelemetryStep[] | undefined>();
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const abortControllerRef = useRef<AbortController | null>(null);
 
-  const messages = useMemo(() => coreToMessages(coreMessages), [coreMessages]);
+  const messages = useMemo(
+    () => coreToMessages(coreMessages, latestTelemetry),
+    [coreMessages, latestTelemetry],
+  );
 
   useEffect(() => {
     if (apiKey) setRequestError(null);
@@ -216,9 +248,7 @@ export default function ChatWindow({
           try {
             const payload = (await response.json()) as { error?: string };
             if (payload.error === "OpenRouter API key is required.") {
-              setRequestError(
-                "Add your OpenRouter API key in Sidebar > API Key to continue.",
-              );
+              setRequestError("Add your OpenRouter API key in Sidebar > API Key to continue.");
               return;
             }
             if (payload.error) errorMsg = payload.error;
@@ -229,9 +259,13 @@ export default function ChatWindow({
           return;
         }
 
-        const data = (await response.json()) as { messages: CoreMessage[] };
+        const data = (await response.json()) as {
+          messages: CoreMessage[];
+          telemetry?: TelemetryStep[];
+        };
         syncSessionFromResponse(response);
 
+        setLatestTelemetry(data.telemetry);
         setCoreMessages([...updatedCoreMessages, ...data.messages]);
       } catch (err) {
         if (err instanceof Error && err.name !== "AbortError") {

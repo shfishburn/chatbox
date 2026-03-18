@@ -1,5 +1,5 @@
-import { tool } from "./tool";
 import { z } from "zod";
+import { tool } from "./tool";
 
 // Allowed external URL check — blocks private IP ranges and localhost (SSRF protection per OWASP)
 function isBlockedUrl(url: URL): boolean {
@@ -31,9 +31,7 @@ export const urlReaderTool = tool({
     url: z
       .string()
       .url()
-      .describe(
-        "The full URL of the page to read, e.g. 'https://example.com/article'",
-      ),
+      .describe("The full URL of the page to read, e.g. 'https://example.com/article'"),
   }),
   execute: async ({ url }) => {
     let parsedUrl: URL;
@@ -67,10 +65,7 @@ export const urlReaderTool = tool({
       }
 
       const contentType = res.headers.get("content-type") ?? "";
-      if (
-        !contentType.includes("text/") &&
-        !contentType.includes("application/json")
-      ) {
+      if (!contentType.includes("text/") && !contentType.includes("application/json")) {
         return { error: "URL does not return readable text content." };
       }
 
@@ -91,9 +86,7 @@ export const urlReaderTool = tool({
 
       // Limit to ~8000 chars to stay within context budget
       const truncated =
-        stripped.length > 8000
-          ? stripped.slice(0, 8000) + "\n\n[Content truncated]"
-          : stripped;
+        stripped.length > 8000 ? `${stripped.slice(0, 8000)}\n\n[Content truncated]` : stripped;
 
       return { url: parsedUrl.toString(), content: truncated };
     } catch (err) {

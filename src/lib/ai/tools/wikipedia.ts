@@ -1,5 +1,5 @@
-import { tool } from "./tool";
 import { z } from "zod";
+import { tool } from "./tool";
 
 export const wikipediaTool = tool({
   description:

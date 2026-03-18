@@ -112,10 +112,7 @@ export function createOpenRouter(apiKey: string): OpenRouterClient {
 
           if (!res.ok) {
             const text = await res.text();
-            throw new OpenRouterRequestError(
-              res.status,
-              `OpenRouter error ${res.status}: ${text}`,
-            );
+            throw new OpenRouterRequestError(res.status, `OpenRouter error ${res.status}: ${text}`);
           }
           return res.json() as Promise<ChatCompletionResponse>;
         },

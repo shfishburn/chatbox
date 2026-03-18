@@ -1,11 +1,11 @@
-import type { ChatCompletionTool } from "../openrouter";
-import { zodToJsonSchema } from "zod-to-json-schema";
 import type { z } from "zod";
+import { zodToJsonSchema } from "zod-to-json-schema";
+import type { ChatCompletionTool } from "../openrouter";
 import { calculatorTool } from "./calculator";
+import type { Tool } from "./tool";
+import { urlReaderTool } from "./urlReader";
 import { weatherTool } from "./weather";
 import { wikipediaTool } from "./wikipedia";
-import { urlReaderTool } from "./urlReader";
-import type { Tool } from "./tool";
 
 export type { Tool };
 
@@ -23,9 +23,7 @@ export const ALL_TOOLS = {
 
 export type AnyTool = (typeof ALL_TOOLS)[keyof typeof ALL_TOOLS];
 
-export function toOpenAITools(
-  tools: Record<string, ToolSchemaLike>,
-): ChatCompletionTool[] {
+export function toOpenAITools(tools: Record<string, ToolSchemaLike>): ChatCompletionTool[] {
   return Object.entries(tools).map(([name, t]) => {
     const { $schema, ...parameters } = zodToJsonSchema(t.parameters) as {
       $schema?: string;
@@ -50,8 +48,7 @@ export const TOOL_META: ToolMeta[] = [
   {
     id: "calculator",
     name: "Calculator",
-    description:
-      "Evaluate math expressions, algebra, trigonometry, unit conversions",
+    description: "Evaluate math expressions, algebra, trigonometry, unit conversions",
     icon: "calculator",
   },
   {
@@ -63,8 +60,7 @@ export const TOOL_META: ToolMeta[] = [
   {
     id: "wikipedia",
     name: "Wikipedia",
-    description:
-      "Search Wikipedia for facts, history, science, and definitions",
+    description: "Search Wikipedia for facts, history, science, and definitions",
     icon: "book-open",
   },
   {

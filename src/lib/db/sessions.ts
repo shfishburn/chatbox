@@ -15,11 +15,7 @@ export async function getSessions(userId: string): Promise<ChatSession[]> {
 
 export async function getSession(id: string): Promise<ChatSession | null> {
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("chat_sessions")
-    .select("*")
-    .eq("id", id)
-    .single();
+  const { data, error } = await supabase.from("chat_sessions").select("*").eq("id", id).single();
 
   if (error) return null;
   return data as ChatSession;

@@ -1,24 +1,16 @@
 "use client";
 
-import { useState, useOptimistic, useTransition } from "react";
-import { useRouter, usePathname } from "next/navigation";
-import Link from "next/link";
 import type { User } from "@supabase/supabase-js";
-import type { ChatSession } from "@/lib/supabase/types";
-import { createClient } from "@/lib/supabase/client";
-import { cn } from "@/lib/utils";
+import { ChevronLeft, ChevronRight, Key, LogOut, MessageSquare, Plus, Trash2 } from "lucide-react";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { useOptimistic, useState, useTransition } from "react";
 import { useSidebarStore } from "@/components/layout/sidebarStore";
-import {
-  MessageSquare,
-  Plus,
-  Trash2,
-  LogOut,
-  ChevronLeft,
-  ChevronRight,
-  Key,
-} from "lucide-react";
 import ApiKeyModal from "@/components/ui/ApiKeyModal";
 import { useApiKey } from "@/lib/apiKeyStore";
+import { createClient } from "@/lib/supabase/client";
+import type { ChatSession } from "@/lib/supabase/types";
+import { cn } from "@/lib/utils";
 
 interface Props {
   user: User;
@@ -26,11 +18,7 @@ interface Props {
   mobile?: boolean;
 }
 
-export default function Sidebar({
-  user,
-  initialSessions,
-  mobile = false,
-}: Props) {
+export default function Sidebar({ user, initialSessions, mobile = false }: Props) {
   const router = useRouter();
   const pathname = usePathname();
   const [sessions, setSessionsOptimistic] = useOptimistic(initialSessions);
@@ -71,9 +59,7 @@ export default function Sidebar({
     });
   }
 
-  const activeId = pathname.startsWith("/chat/")
-    ? pathname.split("/chat/")[1]
-    : null;
+  const activeId = pathname.startsWith("/chat/") ? pathname.split("/chat/")[1] : null;
 
   return (
     <>
@@ -93,9 +79,7 @@ export default function Sidebar({
           <div className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center shrink-0">
             <MessageSquare className="w-4 h-4 text-white" />
           </div>
-          {!collapsed && (
-            <span className="font-semibold text-foreground">ChatBox</span>
-          )}
+          {!collapsed && <span className="font-semibold text-foreground">ChatBox</span>}
         </div>
 
         {/* New Chat */}
@@ -119,9 +103,7 @@ export default function Sidebar({
         {!collapsed && (
           <nav className="flex-1 overflow-y-auto px-2 py-1 space-y-0.5">
             {sessions.length === 0 && (
-              <p className="text-xs text-neutral-400 px-2 py-4 text-center">
-                No conversations yet
-              </p>
+              <p className="text-xs text-neutral-400 px-2 py-4 text-center">No conversations yet</p>
             )}
             {sessions.map((session) => (
               <Link
@@ -137,6 +119,7 @@ export default function Sidebar({
               >
                 <span className="truncate flex-1 min-w-0">{session.title}</span>
                 <button
+                  type="button"
                   onClick={(e) => handleDelete(session.id, e)}
                   className={cn(
                     "ml-1 p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity",
@@ -162,6 +145,7 @@ export default function Sidebar({
         >
           {/* <ThemeToggle collapsed={collapsed} /> */}
           <button
+            type="button"
             onClick={() => setShowApiKeyModal(true)}
             className={cn(
               "relative flex items-center gap-2 w-full rounded-lg px-2 py-2 text-sm text-neutral-600 dark:text-neutral-400",
@@ -182,6 +166,7 @@ export default function Sidebar({
             </div>
           )}
           <button
+            type="button"
             onClick={handleSignOut}
             className={cn(
               "flex items-center gap-2 w-full rounded-lg px-2 py-2 text-sm text-neutral-600 dark:text-neutral-400",
@@ -198,6 +183,7 @@ export default function Sidebar({
         {/* Collapse toggle */}
         {!mobile && (
           <button
+            type="button"
             onClick={() => setCollapsed((c) => !c)}
             className={cn(
               "absolute -right-3 top-1/2 -translate-y-1/2 z-10",
@@ -216,9 +202,7 @@ export default function Sidebar({
         )}
       </aside>
 
-      {showApiKeyModal && (
-        <ApiKeyModal onClose={() => setShowApiKeyModal(false)} />
-      )}
+      {showApiKeyModal && <ApiKeyModal onClose={() => setShowApiKeyModal(false)} />}
     </>
   );
 }

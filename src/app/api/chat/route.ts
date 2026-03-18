@@ -1,36 +1,32 @@
 import type { ChatCompletionMessage } from "@/lib/ai/openrouter";
-import { createClient } from "@/lib/supabase/server";
-import { createOpenRouter } from "@/lib/ai/openrouter";
 import {
+  createOpenRouter,
   OpenRouterRequestError,
   OpenRouterTimeoutError,
 } from "@/lib/ai/openrouter";
-import { ALL_TOOLS, toOpenAITools } from "@/lib/ai/tools";
 import type { AnyTool } from "@/lib/ai/tools";
-import { createSession, updateSession } from "@/lib/db/sessions";
-import { saveMessage } from "@/lib/db/messages";
+import { ALL_TOOLS, toOpenAITools } from "@/lib/ai/tools";
 import type {
   CoreMessage,
+  TelemetryStep,
   TextPart,
   ToolCallPart,
   ToolResultPart,
 } from "@/lib/ai/types";
+import { saveMessage } from "@/lib/db/messages";
+import { createSession, updateSession } from "@/lib/db/sessions";
+import { createClient } from "@/lib/supabase/server";
 
 export const maxDuration = 60;
 
-function buildSessionHeaders(
-  sessionId: string,
-  isNewSession: boolean,
-): HeadersInit {
+function buildSessionHeaders(sessionId: string, isNewSession: boolean): HeadersInit {
   return {
     "X-Session-Id": sessionId,
     "X-Is-New-Session": isNewSession ? "true" : "false",
   };
 }
 
-function coreMessagesToOpenAI(
-  messages: CoreMessage[],
-): ChatCompletionMessage[] {
+function coreMessagesToOpenAI(messages: CoreMessage[]): ChatCompletionMessage[] {
   const result: ChatCompletionMessage[] = [];
   for (const msg of messages) {
     if (msg.role === "system") {
@@ -49,9 +45,7 @@ function coreMessagesToOpenAI(
         .filter((p): p is TextPart => p.type === "text")
         .map((p) => p.text)
         .join("");
-      const toolCallParts = parts.filter(
-        (p): p is ToolCallPart => p.type === "tool-call",
-      );
+      const toolCallParts = parts.filter((p): p is ToolCallPart => p.type === "tool-call");
       const openAIMsg: Extract<ChatCompletionMessage, { role: "assistant" }> = {
         role: "assistant",
         content: text || null,
@@ -72,10 +66,7 @@ function coreMessagesToOpenAI(
         result.push({
           role: "tool",
           tool_call_id: part.toolCallId,
-          content:
-            typeof part.result === "string"
-              ? part.result
-              : JSON.stringify(part.result),
+          content: typeof part.result === "string" ? part.result : JSON.stringify(part.result),
         });
       }
     }
@@ -118,26 +109,53 @@ function openAIAssistantToCoreMessage(msg: {
   return { role: "assistant", content: msg.content ?? "" };
 }
 
+interface RunWithToolsResult {
+  messages: CoreMessage[];
+  telemetry: TelemetryStep[];
+}
+
 async function runWithTools(
   openai: ReturnType<typeof createOpenRouter>,
   model: string,
   messages: ChatCompletionMessage[],
   toolsToUse: Record<string, AnyTool> | undefined,
   maxSteps: number,
-): Promise<CoreMessage[]> {
+): Promise<RunWithToolsResult> {
   const openAITools = toolsToUse ? toOpenAITools(toolsToUse) : undefined;
   const responseMessages: CoreMessage[] = [];
+  const telemetry: TelemetryStep[] = [];
   const currentMessages = [...messages];
 
   for (let step = 0; step < maxSteps; step++) {
-    const response = await openai.chat.completions.create({
+    const requestPayload = {
       model,
       messages: currentMessages,
       temperature: 0,
       top_p: 1,
-      ...(openAITools?.length
-        ? { tools: openAITools, tool_choice: "auto" as const }
-        : {}),
+      ...(openAITools?.length ? { tools: openAITools, tool_choice: "auto" as const } : {}),
+    };
+
+    const startTime = Date.now();
+    const response = await openai.chat.completions.create(requestPayload);
+    const durationMs = Date.now() - startTime;
+
+    telemetry.push({
+      step,
+      request: {
+        model,
+        messages: currentMessages.map((m) => ({
+          role: m.role,
+          content:
+            typeof m.content === "string"
+              ? m.content.slice(0, 200) + (m.content.length > 200 ? "…" : "")
+              : "[structured]",
+          ...("tool_calls" in m && m.tool_calls ? { tool_calls: m.tool_calls } : {}),
+          ...("tool_call_id" in m && m.tool_call_id ? { tool_call_id: m.tool_call_id } : {}),
+        })),
+        ...(openAITools?.length ? { tools: openAITools } : {}),
+      },
+      response,
+      durationMs,
     });
 
     const choice = response.choices?.[0];
@@ -148,10 +166,7 @@ async function runWithTools(
     responseMessages.push(coreAssistantMsg);
     currentMessages.push(assistantMsg);
 
-    if (
-      choice.finish_reason !== "tool_calls" ||
-      !assistantMsg.tool_calls?.length
-    ) {
+    if (choice.finish_reason !== "tool_calls" || !assistantMsg.tool_calls?.length) {
       break;
     }
 
@@ -172,9 +187,7 @@ async function runWithTools(
         ? { error: "Tool not found" }
         : !parsed?.success
           ? { error: "Invalid tool arguments", details: parsed?.error.issues }
-          : await (toolFn.execute as (input: unknown) => Promise<unknown>)(
-              parsed.data,
-            );
+          : await (toolFn.execute as (input: unknown) => Promise<unknown>)(parsed.data);
 
       toolResultParts.push({
         type: "tool-result",
@@ -191,7 +204,7 @@ async function runWithTools(
     responseMessages.push({ role: "tool", content: toolResultParts });
   }
 
-  return responseMessages;
+  return { messages: responseMessages, telemetry };
 }
 
 export async function POST(req: Request) {
@@ -206,15 +219,10 @@ export async function POST(req: Request) {
   }
 
   const apiKey =
-    req.headers.get("x-openrouter-key")?.trim() ??
-    process.env.OPENROUTER_API_KEY?.trim() ??
-    "";
+    req.headers.get("x-openrouter-key")?.trim() ?? process.env.OPENROUTER_API_KEY?.trim() ?? "";
 
   if (!apiKey) {
-    return Response.json(
-      { error: "OpenRouter API key is required." },
-      { status: 400 },
-    );
+    return Response.json({ error: "OpenRouter API key is required." }, { status: 400 });
   }
 
   const openai = createOpenRouter(apiKey);
@@ -272,16 +280,24 @@ export async function POST(req: Request) {
 
   try {
     const openAIMessages = coreMessagesToOpenAI(messages);
-    const responseMessages = await runWithTools(
-      openai,
-      model,
-      openAIMessages,
-      toolsToUse,
-      5,
-    );
+
+    // Prepend system prompt
+    const systemPrompt: ChatCompletionMessage = {
+      role: "system",
+      content: [
+        "You are ChatBox, a helpful AI assistant.",
+        "Be concise and direct. Use markdown formatting for structure: headings, lists, bold, code blocks with language tags.",
+        "When you have access to tools, use them proactively — don't guess when you can look up or compute an answer.",
+        "If a tool call fails, explain what went wrong briefly and try an alternative approach.",
+        "Never fabricate tool results. If you don't have the right tool for a task, say so.",
+      ].join(" "),
+    };
+    openAIMessages.unshift(systemPrompt);
+
+    const result = await runWithTools(openai, model, openAIMessages, toolsToUse, 5);
 
     // Save all new assistant messages (including tool calls / results)
-    for (const msg of responseMessages) {
+    for (const msg of result.messages) {
       if (msg.role === "assistant" || msg.role === "tool") {
         await saveMessage(sessionId!, msg);
       }
@@ -293,7 +309,7 @@ export async function POST(req: Request) {
     });
 
     return Response.json(
-      { messages: responseMessages },
+      { messages: result.messages, telemetry: result.telemetry },
       {
         headers: buildSessionHeaders(sessionId!, isNewSession),
       },

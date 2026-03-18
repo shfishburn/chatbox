@@ -1,14 +1,15 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
 import type { Model } from "@/lib/ai/models";
+import { createClient } from "@/lib/supabase/server";
 
-const MODEL_BLACKLIST = [
-  "arcee-ai/trinity-large-preview:free",
+const ALLOWED_MODELS = [
+  "qwen/qwen3.5-9b",
+  "openai/gpt-5-nano",
+  "google/gemini-2.5-flash-lite",
+  "qwen/qwen3-8b",
+  "openai/gpt-4.1-nano",
   "meta-llama/llama-3.3-70b-instruct:free",
-  "minimax/minimax-m2.5:free",
-  "mistralai/mistral-small-3.1-24b-instruct:free",
-  "qwen/",
-  "openai/",
+  "meta-llama/llama-3.1-8b-instruct",
 ];
 
 interface OpenRouterModel {
@@ -16,8 +17,6 @@ interface OpenRouterModel {
   name: string;
   description?: string;
   context_length?: number;
-  pricing?: { prompt?: string; completion?: string };
-  supported_parameters?: string[];
 }
 
 function formatContextLength(tokens: number | undefined): string {
@@ -38,15 +37,10 @@ export async function GET(req: Request) {
   }
 
   const apiKey =
-    req.headers.get("x-openrouter-key")?.trim() ??
-    process.env.OPENROUTER_API_KEY?.trim() ??
-    "";
+    req.headers.get("x-openrouter-key")?.trim() ?? process.env.OPENROUTER_API_KEY?.trim() ?? "";
 
   if (!apiKey) {
-    return NextResponse.json(
-      { error: "OpenRouter API key is required." },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: "OpenRouter API key is required." }, { status: 400 });
   }
 
   const headers: Record<string, string> = {
@@ -67,15 +61,10 @@ export async function GET(req: Request) {
     );
   }
 
+  const allowedSet = new Set(ALLOWED_MODELS);
   const json = await res.json();
   const models: Model[] = (json.data as OpenRouterModel[])
-    .filter(
-      (m) =>
-        m.supported_parameters?.includes("tools") &&
-        m.pricing?.prompt === "0" &&
-        m.pricing?.completion === "0" &&
-        !MODEL_BLACKLIST.find((id) => m.id.startsWith(id)),
-    )
+    .filter((m) => allowedSet.has(m.id))
     .map((m) => ({
       id: m.id,
       name: m.name,

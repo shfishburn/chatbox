@@ -1,17 +1,9 @@
 "use client";
 
+import { BookOpen, Calculator, ChevronDown, Cloud, Link, Search, Wrench } from "lucide-react";
 import { useState } from "react";
 import { TOOL_META } from "@/lib/ai/tools";
 import { cn } from "@/lib/utils";
-import {
-  Wrench,
-  Calculator,
-  Search,
-  Cloud,
-  BookOpen,
-  Link,
-  ChevronDown,
-} from "lucide-react";
 
 const ICONS: Record<string, React.ReactNode> = {
   calculator: <Calculator className="w-4 h-4" />,
@@ -42,6 +34,7 @@ export default function ToolsPanel({ enabledTools, onChange }: Props) {
   return (
     <div className="relative">
       <button
+        type="button"
         onClick={() => setOpen((o) => !o)}
         className={cn(
           "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors",
@@ -53,18 +46,14 @@ export default function ToolsPanel({ enabledTools, onChange }: Props) {
       >
         <Wrench className="w-3.5 h-3.5" />
         <span>Tools{activeCount > 0 ? ` (${activeCount})` : ""}</span>
-        <ChevronDown
-          className={cn(
-            "w-3.5 h-3.5 transition-transform",
-            open && "rotate-180",
-          )}
-        />
+        <ChevronDown className={cn("w-3.5 h-3.5 transition-transform", open && "rotate-180")} />
       </button>
 
       {open && (
         <>
           {/* Backdrop */}
-          <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
+          {/* biome-ignore lint/a11y/noStaticElementInteractions: backdrop dismiss */}
+          <div role="presentation" className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
           {/* Panel */}
           <div className="absolute right-0 top-full mt-2 z-20 w-72 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 shadow-lg overflow-hidden">
             <div className="px-3 py-2 border-b border-neutral-100 dark:border-neutral-800">
@@ -77,6 +66,7 @@ export default function ToolsPanel({ enabledTools, onChange }: Props) {
                 const enabled = enabledTools.includes(tool.id);
                 return (
                   <button
+                    type="button"
                     key={tool.id}
                     onClick={() => toggle(tool.id)}
                     className={cn(
@@ -101,9 +91,7 @@ export default function ToolsPanel({ enabledTools, onChange }: Props) {
                         <span
                           className={cn(
                             "text-sm font-medium",
-                            enabled
-                              ? "text-blue-700 dark:text-blue-400"
-                              : "text-foreground",
+                            enabled ? "text-blue-700 dark:text-blue-400" : "text-foreground",
                           )}
                         >
                           {tool.name}
@@ -112,17 +100,13 @@ export default function ToolsPanel({ enabledTools, onChange }: Props) {
                         <div
                           className={cn(
                             "w-8 h-4 rounded-full transition-colors shrink-0",
-                            enabled
-                              ? "bg-blue-600"
-                              : "bg-neutral-200 dark:bg-neutral-700",
+                            enabled ? "bg-blue-600" : "bg-neutral-200 dark:bg-neutral-700",
                           )}
                         >
                           <div
                             className={cn(
                               "w-3 h-3 rounded-full bg-white shadow-sm transition-transform mt-0.5",
-                              enabled
-                                ? "translate-x-4 ml-0.5"
-                                : "translate-x-0.5",
+                              enabled ? "translate-x-4 ml-0.5" : "translate-x-0.5",
                             )}
                           />
                         </div>
