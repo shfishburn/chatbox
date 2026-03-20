@@ -1,4 +1,3 @@
-"use client";
 
 import { BookOpen, Calculator, ChevronDown, Cloud, Link, Search, Wrench } from "lucide-react";
 import { useState } from "react";

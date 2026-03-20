@@ -1,4 +1,3 @@
-"use client";
 
 import { Bot, RotateCcw } from "lucide-react";
 import { useEffect, useRef } from "react";

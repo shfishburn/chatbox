@@ -1,5 +1,3 @@
-"use client";
-
 import {
   ArrowRight,
   BookOpen,
@@ -13,7 +11,7 @@ import {
   Wrench,
   Zap,
 } from "lucide-react";
-import Link from "next/link";
+import { Link } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
 
 const tools = [
@@ -103,13 +101,13 @@ export default function LandingPage() {
           </nav>
           <div className="flex items-center gap-3">
             <Link
-              href="/login"
+              to="/login"
               className="px-4 py-2 text-sm font-medium text-neutral-600 dark:text-neutral-400 hover:text-foreground transition-colors"
             >
               Sign in
             </Link>
             <Link
-              href="/register"
+              to="/register"
               className="px-4 py-2 text-sm font-medium rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors"
             >
               Get started
@@ -139,7 +137,7 @@ export default function LandingPage() {
 
         <div className="flex items-center justify-center gap-4">
           <Link
-            href="/register"
+            to="/register"
             className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-700 transition-colors text-base"
           >
             Try it out
@@ -336,7 +334,7 @@ export default function LandingPage() {
             </p>
             <ul className="space-y-2 text-sm">
               {[
-                "Next.js 15 with the App Router",
+                "TanStack Start with file-based routing",
                 "TypeScript end to end",
                 "Supabase for auth & database (with RLS)",
                 "OpenRouter as a unified LLM gateway",
@@ -371,14 +369,14 @@ export default function LandingPage() {
           </p>
           <div className="flex items-center justify-center gap-4">
             <Link
-              href="/register"
+              to="/register"
               className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-700 transition-colors text-base"
             >
               Start chatting
               <ArrowRight className="w-4 h-4" />
             </Link>
             <Link
-              href="/login"
+              to="/login"
               className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl border border-neutral-200 dark:border-neutral-700 font-medium hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors text-base"
             >
               Sign in
@@ -427,13 +425,13 @@ export default function LandingPage() {
               <div className="flex flex-col gap-2">
                 <span className="font-medium text-neutral-700 dark:text-neutral-300">Account</span>
                 <Link
-                  href="/login"
+                  to="/login"
                   className="text-neutral-500 dark:text-neutral-400 hover:text-foreground transition-colors"
                 >
                   Sign in
                 </Link>
                 <Link
-                  href="/register"
+                  to="/register"
                   className="text-neutral-500 dark:text-neutral-400 hover:text-foreground transition-colors"
                 >
                   Get started
@@ -442,7 +440,7 @@ export default function LandingPage() {
             </div>
           </div>
           <div className="mt-8 pt-6 border-t border-neutral-200 dark:border-neutral-800 text-xs text-neutral-400 dark:text-neutral-500">
-            Built with Next.js, Supabase & OpenRouter
+            Built with TanStack Start, Supabase & OpenRouter
           </div>
         </div>
       </footer>

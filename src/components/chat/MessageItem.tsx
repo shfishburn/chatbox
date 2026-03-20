@@ -1,4 +1,3 @@
-"use client";
 
 import { Bot, ChevronDown, ChevronRight, Code2, User, Wrench } from "lucide-react";
 import { useState } from "react";

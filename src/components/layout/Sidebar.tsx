@@ -1,9 +1,6 @@
-"use client";
-
 import type { User } from "@supabase/supabase-js";
 import { ChevronLeft, ChevronRight, Key, LogOut, MessageSquare, Plus, Trash2 } from "lucide-react";
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { useOptimistic, useState, useTransition } from "react";
 import { useSidebarStore } from "@/components/layout/sidebarStore";
 import ApiKeyModal from "@/components/ui/ApiKeyModal";
@@ -19,8 +16,9 @@ interface Props {
 }
 
 export default function Sidebar({ user, initialSessions, mobile = false }: Props) {
-  const router = useRouter();
-  const pathname = usePathname();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const pathname = location.pathname;
   const [sessions, setSessionsOptimistic] = useOptimistic(initialSessions);
   const [collapsed, setCollapsed] = useState(false);
   const [showApiKeyModal, setShowApiKeyModal] = useState(false);
@@ -28,7 +26,6 @@ export default function Sidebar({ user, initialSessions, mobile = false }: Props
   const [, startTransition] = useTransition();
   const { open: mobileOpen, setOpen: setMobileOpen } = useSidebarStore();
 
-  // On mobile, nav links close the drawer
   function handleNavClick() {
     if (mobile) setMobileOpen(false);
   }
@@ -36,8 +33,7 @@ export default function Sidebar({ user, initialSessions, mobile = false }: Props
   async function handleSignOut() {
     const supabase = createClient();
     await supabase.auth.signOut();
-    router.push("/login");
-    router.refresh();
+    navigate({ to: "/login" });
   }
 
   async function handleDelete(id: string, e: React.MouseEvent) {
@@ -48,14 +44,12 @@ export default function Sidebar({ user, initialSessions, mobile = false }: Props
       setSessionsOptimistic((prev) => prev.filter((s) => s.id !== id));
       const res = await fetch(`/api/sessions/${id}`, { method: "DELETE" });
       if (!res.ok) {
-        // Refresh to re-sync state
-        router.refresh();
+        window.location.reload();
         return;
       }
       if (pathname === `/chat/${id}`) {
-        router.push("/chat");
+        navigate({ to: "/chat" });
       }
-      router.refresh();
     });
   }
 
@@ -85,7 +79,7 @@ export default function Sidebar({ user, initialSessions, mobile = false }: Props
         {/* New Chat */}
         <div className={cn("px-2 py-2", collapsed && "flex justify-center")}>
           <Link
-            href="/chat"
+            to="/chat"
             onClick={handleNavClick}
             className={cn(
               "flex items-center gap-2 rounded-lg px-2 py-2 text-sm font-medium text-neutral-700 dark:text-neutral-300",
@@ -108,7 +102,8 @@ export default function Sidebar({ user, initialSessions, mobile = false }: Props
             {sessions.map((session) => (
               <Link
                 key={session.id}
-                href={`/chat/${session.id}`}
+                to="/chat/$sessionId"
+                params={{ sessionId: session.id }}
                 onClick={handleNavClick}
                 className={cn(
                   "group flex items-center justify-between rounded-lg px-2 py-2 text-sm transition-colors",
@@ -143,7 +138,6 @@ export default function Sidebar({ user, initialSessions, mobile = false }: Props
             collapsed && "flex flex-col items-center",
           )}
         >
-          {/* <ThemeToggle collapsed={collapsed} /> */}
           <button
             type="button"
             onClick={() => setShowApiKeyModal(true)}

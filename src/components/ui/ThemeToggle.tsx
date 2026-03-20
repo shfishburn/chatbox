@@ -1,7 +1,6 @@
-"use client";
 
 import { Moon, Sun } from "lucide-react";
-import { useTheme } from "next-themes";
+import { useTheme } from "@/components/ui/ThemeProvider";
 import { cn } from "@/lib/utils";
 
 export default function ThemeToggle({ collapsed = false }: { collapsed?: boolean }) {

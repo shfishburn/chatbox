@@ -1,6 +1,4 @@
-"use client";
-
-import { useRouter } from "next/navigation";
+import { useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { CoreMessage, Message, TelemetryStep, ToolInvocation } from "@/lib/ai/types";
 import { useApiKey } from "@/lib/apiKeyStore";
@@ -131,7 +129,7 @@ export default function ChatWindow({
   initialTools = [],
   initialMessages = [],
 }: Props) {
-  const router = useRouter();
+  const navigate = useNavigate();
   const { apiKey } = useApiKey();
   const [requestError, setRequestError] = useState<string | null>(null);
   const isNewSession = !initialSessionId;
@@ -196,11 +194,10 @@ export default function ChatWindow({
       if (newSessionId && isNew && !sessionRedirected.current) {
         sessionRedirected.current = true;
         setSessionId(newSessionId);
-        router.replace(`/chat/${newSessionId}`);
-        router.refresh();
+        navigate({ to: "/chat/$sessionId", params: { sessionId: newSessionId }, replace: true });
       }
     },
-    [router],
+    [navigate],
   );
 
   const handleSubmit = useCallback(

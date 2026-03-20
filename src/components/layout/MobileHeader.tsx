@@ -1,4 +1,3 @@
-"use client";
 
 import { Menu, MessageSquare } from "lucide-react";
 import { useSidebarStore } from "@/components/layout/sidebarStore";

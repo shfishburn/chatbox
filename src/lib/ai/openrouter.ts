@@ -75,7 +75,7 @@ export function createOpenRouter(apiKey: string): OpenRouterClient {
   const headers = {
     "Content-Type": "application/json",
     Authorization: `Bearer ${apiKey}`,
-    "HTTP-Referer": process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
+    "HTTP-Referer": process.env.VITE_SUPABASE_URL ?? "",
     "X-Title": "ChatBox",
   };
 

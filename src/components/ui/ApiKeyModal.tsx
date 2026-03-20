@@ -1,4 +1,3 @@
-"use client";
 
 import { ExternalLink, Key, X } from "lucide-react";
 import { useEffect, useState } from "react";

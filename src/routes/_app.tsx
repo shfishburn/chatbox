@@ -1,35 +1,37 @@
-import { redirect } from "next/navigation";
+import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import MobileHeader from "@/components/layout/MobileHeader";
 import MobileSidebarBackdrop from "@/components/layout/MobileSidebarBackdrop";
 import Sidebar from "@/components/layout/Sidebar";
-import { getSessions } from "@/lib/db/sessions";
-import { createClient } from "@/lib/supabase/server";
+import { getAuthUser } from "@/lib/server/auth";
+import { getSessionsForUser } from "@/lib/server/sessions";
 
-export default async function AppLayout({ children }: { children: React.ReactNode }) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+export const Route = createFileRoute("/_app")({
+  beforeLoad: async () => {
+    const user = await getAuthUser();
+    if (!user) {
+      throw redirect({ to: "/login" });
+    }
+    const sessions = await getSessionsForUser();
+    return { user, sessions };
+  },
+  component: AppLayout,
+});
 
-  if (!user) redirect("/login");
-
-  const sessions = await getSessions(user.id);
+function AppLayout() {
+  const { user, sessions } = Route.useRouteContext();
 
   return (
     <div className="flex h-screen overflow-hidden bg-neutral-50 dark:bg-neutral-950">
-      {/* Desktop sidebar */}
       <div className="hidden md:flex">
         <Sidebar user={user} initialSessions={sessions} />
       </div>
-      {/* Mobile sidebar (drawer) */}
       <div className="md:hidden">
         <MobileSidebarBackdrop />
         <Sidebar user={user} initialSessions={sessions} mobile />
       </div>
       <main className="flex-1 flex flex-col overflow-hidden min-w-0">
-        {/* Mobile top bar */}
         <MobileHeader />
-        {children}
+        <Outlet />
       </main>
     </div>
   );

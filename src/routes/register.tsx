@@ -1,14 +1,15 @@
-"use client";
-
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Loader2, MessageSquare } from "lucide-react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
-export default function RegisterPage() {
-  const router = useRouter();
+export const Route = createFileRoute("/register")({
+  component: RegisterPage,
+});
+
+function RegisterPage() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -31,7 +32,7 @@ export default function RegisterPage() {
 
     setLoading(true);
     const supabase = createClient();
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
+    const siteUrl = import.meta.env.VITE_SITE_URL || window.location.origin;
     const { error } = await supabase.auth.signUp({
       email,
       password,
@@ -42,14 +43,12 @@ export default function RegisterPage() {
       setError(error.message);
       setLoading(false);
     } else {
-      // Try to sign in directly (works when email confirmation is disabled)
       const { error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
       if (!signInError) {
-        router.push("/");
-        router.refresh();
+        navigate({ to: "/chat" });
       } else {
         setSuccess(true);
         setLoading(false);
@@ -82,7 +81,6 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <div className="w-full max-w-md">
-        {/* Logo */}
         <div className="flex items-center justify-center gap-2 mb-8">
           <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center">
             <MessageSquare className="w-5 h-5 text-white" />
@@ -191,7 +189,7 @@ export default function RegisterPage() {
 
         <p className="text-center text-sm text-neutral-500 mt-4">
           Already have an account?{" "}
-          <Link href="/login" className="text-blue-600 hover:underline font-medium">
+          <Link to="/login" className="text-blue-600 hover:underline font-medium">
             Sign in
           </Link>
         </p>

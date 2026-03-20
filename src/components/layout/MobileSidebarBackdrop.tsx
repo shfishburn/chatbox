@@ -1,4 +1,3 @@
-"use client";
 
 import { useSidebarStore } from "@/components/layout/sidebarStore";
 import { cn } from "@/lib/utils";

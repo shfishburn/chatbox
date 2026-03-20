@@ -1,4 +1,3 @@
-"use client";
 
 const STORAGE_KEY = "chat_preferences";
 

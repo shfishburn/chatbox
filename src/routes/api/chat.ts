@@ -1,3 +1,4 @@
+import { createFileRoute } from "@tanstack/react-router";
 import type { ChatCompletionMessage } from "@/lib/ai/openrouter";
 import {
   createOpenRouter,
@@ -16,8 +17,6 @@ import type {
 import { saveMessage } from "@/lib/db/messages";
 import { createSession, updateSession } from "@/lib/db/sessions";
 import { createClient } from "@/lib/supabase/server";
-
-export const maxDuration = 60;
 
 function buildSessionHeaders(sessionId: string, isNewSession: boolean): HeadersInit {
   return {
@@ -76,13 +75,7 @@ function coreMessagesToOpenAI(messages: CoreMessage[]): ChatCompletionMessage[] 
 
 function openAIAssistantToCoreMessage(msg: {
   content: string | null;
-  tool_calls?:
-    | {
-        id: string;
-        type: string;
-        function: { name: string; arguments: string };
-      }[]
-    | null;
+  tool_calls?: { id: string; type: string; function: { name: string; arguments: string } }[] | null;
 }): CoreMessage {
   if (msg.tool_calls && msg.tool_calls.length > 0) {
     const parts: (TextPart | ToolCallPart)[] = [];
@@ -170,7 +163,6 @@ async function runWithTools(
       break;
     }
 
-    // Execute all tool calls in this step
     const toolResultParts: ToolResultPart[] = [];
     for (const tc of assistantMsg.tool_calls) {
       if (tc.type !== "function") continue;
@@ -207,142 +199,132 @@ async function runWithTools(
   return { messages: responseMessages, telemetry };
 }
 
-export async function POST(req: Request) {
-  // Authenticate
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+export const Route = createFileRoute("/api/chat")({
+  server: {
+    handlers: {
+      POST: async ({ request }) => {
+        const supabase = await createClient();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
 
-  if (!user) {
-    return new Response("Unauthorized", { status: 401 });
-  }
+        if (!user) {
+          return new Response("Unauthorized", { status: 401 });
+        }
 
-  const apiKey =
-    req.headers.get("x-openrouter-key")?.trim() ?? process.env.OPENROUTER_API_KEY?.trim() ?? "";
+        const apiKey =
+          request.headers.get("x-openrouter-key")?.trim() ??
+          process.env.OPENROUTER_API_KEY?.trim() ??
+          "";
 
-  if (!apiKey) {
-    return Response.json({ error: "OpenRouter API key is required." }, { status: 400 });
-  }
+        if (!apiKey) {
+          return Response.json({ error: "OpenRouter API key is required." }, { status: 400 });
+        }
 
-  const openai = createOpenRouter(apiKey);
+        const openai = createOpenRouter(apiKey);
 
-  const body = await req.json();
-  const {
-    messages,
-    sessionId: incomingSessionId,
-    model,
-    enabledTools = [],
-  }: {
-    messages: CoreMessage[];
-    sessionId?: string;
-    model: string;
-    enabledTools?: string[];
-  } = body;
+        const body = await request.json();
+        const {
+          messages,
+          sessionId: incomingSessionId,
+          model,
+          enabledTools = [],
+        }: {
+          messages: CoreMessage[];
+          sessionId?: string;
+          model: string;
+          enabledTools?: string[];
+        } = body;
 
-  // Resolve or create the session
-  let sessionId = incomingSessionId;
-  const isNewSession = !sessionId;
+        let sessionId = incomingSessionId;
+        const isNewSession = !sessionId;
 
-  if (isNewSession) {
-    const firstUserMessage = messages.findLast((m) => m.role === "user");
-    const rawContent = firstUserMessage?.content;
-    const textContent =
-      typeof rawContent === "string"
-        ? rawContent
-        : Array.isArray(rawContent)
-          ? (rawContent as { type: string; text?: string }[])
-              .filter((p) => p.type === "text" && typeof p.text === "string")
-              .map((p) => p.text as string)
-              .join(" ")
-          : "New Chat";
-    const title = textContent.slice(0, 50).trim() || "New Chat";
+        if (isNewSession) {
+          const firstUserMessage = messages.findLast((m) => m.role === "user");
+          const rawContent = firstUserMessage?.content;
+          const textContent =
+            typeof rawContent === "string"
+              ? rawContent
+              : Array.isArray(rawContent)
+                ? (rawContent as { type: string; text?: string }[])
+                    .filter((p) => p.type === "text" && typeof p.text === "string")
+                    .map((p) => p.text as string)
+                    .join(" ")
+                : "New Chat";
+          const title = textContent.slice(0, 50).trim() || "New Chat";
 
-    const session = await createSession(user.id, model, enabledTools, title);
-    sessionId = session.id;
-  }
+          const session = await createSession(user.id, model, enabledTools, title);
+          sessionId = session.id;
+        }
 
-  // Save the last user message
-  const lastMessage = messages[messages.length - 1];
-  if (lastMessage?.role === "user") {
-    await saveMessage(sessionId!, lastMessage);
-  }
+        const lastMessage = messages[messages.length - 1];
+        if (lastMessage?.role === "user") {
+          await saveMessage(sessionId!, lastMessage);
+        }
 
-  // Build enabled tools map (only the tools the user enabled)
-  const toolsToUse =
-    enabledTools.length > 0
-      ? (Object.fromEntries(
-          enabledTools
-            .filter((id): id is keyof typeof ALL_TOOLS => id in ALL_TOOLS)
-            .map((id) => [id, ALL_TOOLS[id]]),
-        ) as Record<string, AnyTool>)
-      : undefined;
+        const toolsToUse =
+          enabledTools.length > 0
+            ? (Object.fromEntries(
+                enabledTools
+                  .filter((id): id is keyof typeof ALL_TOOLS => id in ALL_TOOLS)
+                  .map((id) => [id, ALL_TOOLS[id]]),
+              ) as Record<string, AnyTool>)
+            : undefined;
 
-  try {
-    const openAIMessages = coreMessagesToOpenAI(messages);
+        try {
+          const openAIMessages = coreMessagesToOpenAI(messages);
 
-    // Prepend system prompt
-    const systemPrompt: ChatCompletionMessage = {
-      role: "system",
-      content: [
-        "You are ChatBox, a helpful AI assistant.",
-        "Be concise and direct. Use markdown formatting for structure: headings, lists, bold, code blocks with language tags.",
-        "When you have access to tools, use them proactively — don't guess when you can look up or compute an answer.",
-        "If a tool call fails, explain what went wrong briefly and try an alternative approach.",
-        "Never fabricate tool results. If you don't have the right tool for a task, say so.",
-      ].join(" "),
-    };
-    openAIMessages.unshift(systemPrompt);
+          const systemPrompt: ChatCompletionMessage = {
+            role: "system",
+            content: [
+              "You are ChatBox, a helpful AI assistant.",
+              "Be concise and direct. Use markdown formatting for structure: headings, lists, bold, code blocks with language tags.",
+              "When you have access to tools, use them proactively — don't guess when you can look up or compute an answer.",
+              "If a tool call fails, explain what went wrong briefly and try an alternative approach.",
+              "Never fabricate tool results. If you don't have the right tool for a task, say so.",
+            ].join(" "),
+          };
+          openAIMessages.unshift(systemPrompt);
 
-    const result = await runWithTools(openai, model, openAIMessages, toolsToUse, 5);
+          const result = await runWithTools(openai, model, openAIMessages, toolsToUse, 5);
 
-    // Save all new assistant messages (including tool calls / results)
-    for (const msg of result.messages) {
-      if (msg.role === "assistant" || msg.role === "tool") {
-        await saveMessage(sessionId!, msg);
-      }
-    }
-    // Bump session updated_at (and update model/tools if they changed)
-    await updateSession(sessionId!, {
-      model,
-      tools_enabled: enabledTools,
-    });
+          for (const msg of result.messages) {
+            if (msg.role === "assistant" || msg.role === "tool") {
+              await saveMessage(sessionId!, msg);
+            }
+          }
+          await updateSession(sessionId!, {
+            model,
+            tools_enabled: enabledTools,
+          });
 
-    return Response.json(
-      { messages: result.messages, telemetry: result.telemetry },
-      {
-        headers: buildSessionHeaders(sessionId!, isNewSession),
+          return Response.json(
+            { messages: result.messages, telemetry: result.telemetry },
+            { headers: buildSessionHeaders(sessionId!, isNewSession) },
+          );
+        } catch (error) {
+          console.error("[api/chat] error:", error);
+
+          if (error instanceof OpenRouterTimeoutError) {
+            return Response.json(
+              { error: "OpenRouter request timed out. Please try again." },
+              { status: 504, headers: buildSessionHeaders(sessionId!, isNewSession) },
+            );
+          }
+
+          if (error instanceof OpenRouterRequestError) {
+            return Response.json(
+              { error: "OpenRouter request failed. Please try again." },
+              { status: 502, headers: buildSessionHeaders(sessionId!, isNewSession) },
+            );
+          }
+
+          return Response.json(
+            { error: "An error occurred" },
+            { status: 500, headers: buildSessionHeaders(sessionId!, isNewSession) },
+          );
+        }
       },
-    );
-  } catch (error) {
-    console.error("[chat/route] error:", error);
-
-    if (error instanceof OpenRouterTimeoutError) {
-      return Response.json(
-        { error: "OpenRouter request timed out. Please try again." },
-        {
-          status: 504,
-          headers: buildSessionHeaders(sessionId!, isNewSession),
-        },
-      );
-    }
-
-    if (error instanceof OpenRouterRequestError) {
-      return Response.json(
-        { error: "OpenRouter request failed. Please try again." },
-        {
-          status: 502,
-          headers: buildSessionHeaders(sessionId!, isNewSession),
-        },
-      );
-    }
-
-    return Response.json(
-      { error: "An error occurred" },
-      {
-        status: 500,
-        headers: buildSessionHeaders(sessionId!, isNewSession),
-      },
-    );
-  }
-}
+    },
+  },
+});

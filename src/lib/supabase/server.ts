@@ -1,24 +1,33 @@
 import { createServerClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
+import { getRequest } from "@tanstack/react-start/server";
 
 export async function createClient() {
-  const cookieStore = await cookies();
+  const request = getRequest();
+  const cookieHeader = request?.headers.get("cookie") ?? "";
+
+  // Parse cookies from the request header
+  const cookies = Object.fromEntries(
+    cookieHeader.split(";").map((c) => {
+      const [key, ...rest] = c.trim().split("=");
+      return [key, rest.join("=")];
+    }),
+  );
+
+  const responseCookies: { name: string; value: string; options?: object }[] = [];
 
   return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    process.env.VITE_SUPABASE_URL!,
+    process.env.VITE_SUPABASE_ANON_KEY!,
     {
       cookies: {
         getAll() {
-          return cookieStore.getAll();
+          return Object.entries(cookies)
+            .filter(([key]) => key.length > 0)
+            .map(([name, value]) => ({ name, value }));
         },
         setAll(cookiesToSet) {
-          try {
-            for (const { name, value, options } of cookiesToSet) {
-              cookieStore.set(name, value, options);
-            }
-          } catch {
-            // Called from Server Component — cookie writes are ignored
+          for (const cookie of cookiesToSet) {
+            responseCookies.push(cookie);
           }
         },
       },
