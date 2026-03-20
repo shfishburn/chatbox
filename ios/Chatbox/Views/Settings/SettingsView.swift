@@ -48,11 +48,29 @@ struct SettingsView: View {
                     }
                 }
 
+                Section("Intelligence") {
+                    NavigationLink {
+                        PipelineStatusView()
+                    } label: {
+                        HStack {
+                            Image(systemName: "brain.head.profile")
+                                .foregroundStyle(.purple)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Detection Engines")
+                                    .font(.body)
+                                Text("5 OpenClaw pipelines — powered by local AI")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                    }
+                }
+
                 Section("Privacy & Security") {
                     HStack(spacing: 8) {
                         Image(systemName: "lock.shield.fill")
                             .foregroundStyle(.green)
-                        Text("All AI inference runs locally. Your financial data never leaves your device.")
+                        Text("PII processed locally via Phi-4 14B. Non-sensitive tasks routed through OpenRouter. Your raw financial data never leaves your VPC.")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }

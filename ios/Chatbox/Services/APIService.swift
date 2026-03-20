@@ -89,6 +89,16 @@ actor ScytheAPIService {
         try await request("POST", path: "/subscriptions/\(subscriptionId)/confirm-kill")
     }
 
+    // MARK: - OpenClaw Pipeline Status
+
+    func fetchPipelineStatuses() async throws -> [PipelineStatus] {
+        try await request("GET", path: "/pipelines/status")
+    }
+
+    func triggerPipeline(_ pipeline: ScythePipeline) async throws {
+        let _: EmptyResponse = try await request("POST", path: "/pipelines/\(pipeline.rawValue)/trigger")
+    }
+
     // MARK: - Internal
 
     private func request<T: Decodable>(_ method: String, path: String, body: [String: Any]? = nil) async throws -> T {
