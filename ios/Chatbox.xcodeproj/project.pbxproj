@@ -11,12 +11,16 @@
 		A1000002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000002 /* ContentView.swift */; };
 		A1000003 /* Message.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000003 /* Message.swift */; };
 		A1000004 /* ChatViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000004 /* ChatViewModel.swift */; };
-		A1000005 /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000005 /* ChatView.swift */; };
-		A1000006 /* MessageBubble.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000006 /* MessageBubble.swift */; };
-		A1000007 /* TypingIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000007 /* TypingIndicator.swift */; };
 		A1000008 /* APIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000008 /* APIService.swift */; };
 		A1000009 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B1000009 /* Assets.xcassets */; };
 		A100000A /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B100000A /* Preview Assets.xcassets */; };
+		A1000010 /* OnboardingFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000010 /* OnboardingFlow.swift */; };
+		A1000011 /* FinancialAutopsyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000011 /* FinancialAutopsyView.swift */; };
+		A1000012 /* SubscriptionDashboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000012 /* SubscriptionDashboard.swift */; };
+		A1000013 /* TrialSentinelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000013 /* TrialSentinelView.swift */; };
+		A1000014 /* AlertsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000014 /* AlertsView.swift */; };
+		A1000015 /* CardManagementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000015 /* CardManagementView.swift */; };
+		A1000016 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000016 /* SettingsView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -24,12 +28,16 @@
 		B1000002 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		B1000003 /* Message.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Message.swift; sourceTree = "<group>"; };
 		B1000004 /* ChatViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatViewModel.swift; sourceTree = "<group>"; };
-		B1000005 /* ChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatView.swift; sourceTree = "<group>"; };
-		B1000006 /* MessageBubble.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageBubble.swift; sourceTree = "<group>"; };
-		B1000007 /* TypingIndicator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TypingIndicator.swift; sourceTree = "<group>"; };
 		B1000008 /* APIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIService.swift; sourceTree = "<group>"; };
 		B1000009 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		B100000A /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		B1000010 /* OnboardingFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingFlow.swift; sourceTree = "<group>"; };
+		B1000011 /* FinancialAutopsyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinancialAutopsyView.swift; sourceTree = "<group>"; };
+		B1000012 /* SubscriptionDashboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionDashboard.swift; sourceTree = "<group>"; };
+		B1000013 /* TrialSentinelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrialSentinelView.swift; sourceTree = "<group>"; };
+		B1000014 /* AlertsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertsView.swift; sourceTree = "<group>"; };
+		B1000015 /* CardManagementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardManagementView.swift; sourceTree = "<group>"; };
+		B1000016 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		C1000001 /* Chatbox.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Chatbox.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -78,9 +86,13 @@
 		E1000004 /* Views */ = {
 			isa = PBXGroup;
 			children = (
-				B1000005 /* ChatView.swift */,
-				B1000006 /* MessageBubble.swift */,
-				B1000007 /* TypingIndicator.swift */,
+				E1000008 /* Onboarding */,
+				E1000009 /* Autopsy */,
+				E100000A /* Dashboard */,
+				E100000B /* Sentinel */,
+				E100000C /* Alerts */,
+				E100000D /* Cards */,
+				E100000E /* Settings */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -107,6 +119,62 @@
 				C1000001 /* Chatbox.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		E1000008 /* Onboarding */ = {
+			isa = PBXGroup;
+			children = (
+				B1000010 /* OnboardingFlow.swift */,
+			);
+			path = Onboarding;
+			sourceTree = "<group>";
+		};
+		E1000009 /* Autopsy */ = {
+			isa = PBXGroup;
+			children = (
+				B1000011 /* FinancialAutopsyView.swift */,
+			);
+			path = Autopsy;
+			sourceTree = "<group>";
+		};
+		E100000A /* Dashboard */ = {
+			isa = PBXGroup;
+			children = (
+				B1000012 /* SubscriptionDashboard.swift */,
+			);
+			path = Dashboard;
+			sourceTree = "<group>";
+		};
+		E100000B /* Sentinel */ = {
+			isa = PBXGroup;
+			children = (
+				B1000013 /* TrialSentinelView.swift */,
+			);
+			path = Sentinel;
+			sourceTree = "<group>";
+		};
+		E100000C /* Alerts */ = {
+			isa = PBXGroup;
+			children = (
+				B1000014 /* AlertsView.swift */,
+			);
+			path = Alerts;
+			sourceTree = "<group>";
+		};
+		E100000D /* Cards */ = {
+			isa = PBXGroup;
+			children = (
+				B1000015 /* CardManagementView.swift */,
+			);
+			path = Cards;
+			sourceTree = "<group>";
+		};
+		E100000E /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				B1000016 /* SettingsView.swift */,
+			);
+			path = Settings;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -183,10 +251,14 @@
 				A1000002 /* ContentView.swift in Sources */,
 				A1000003 /* Message.swift in Sources */,
 				A1000004 /* ChatViewModel.swift in Sources */,
-				A1000005 /* ChatView.swift in Sources */,
-				A1000006 /* MessageBubble.swift in Sources */,
-				A1000007 /* TypingIndicator.swift in Sources */,
 				A1000008 /* APIService.swift in Sources */,
+				A1000010 /* OnboardingFlow.swift in Sources */,
+				A1000011 /* FinancialAutopsyView.swift in Sources */,
+				A1000012 /* SubscriptionDashboard.swift in Sources */,
+				A1000013 /* TrialSentinelView.swift in Sources */,
+				A1000014 /* AlertsView.swift in Sources */,
+				A1000015 /* CardManagementView.swift in Sources */,
+				A1000016 /* SettingsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -322,7 +394,7 @@
 				DEVELOPMENT_ASSET_PATHS = "\"Chatbox/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = Chatbox;
+				INFOPLIST_KEY_CFBundleDisplayName = Scythe;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -333,7 +405,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.chatbox.app;
+				PRODUCT_BUNDLE_IDENTIFIER = com.scythe.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -351,7 +423,7 @@
 				DEVELOPMENT_ASSET_PATHS = "\"Chatbox/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = Chatbox;
+				INFOPLIST_KEY_CFBundleDisplayName = Scythe;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -362,7 +434,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.chatbox.app;
+				PRODUCT_BUNDLE_IDENTIFIER = com.scythe.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;

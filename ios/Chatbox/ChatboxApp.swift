@@ -1,13 +1,23 @@
 import SwiftUI
 
 @main
-struct ChatboxApp: App {
-    @StateObject private var chatViewModel = ChatViewModel()
+struct ScytheApp: App {
+    @StateObject private var appState = AppState()
+    @StateObject private var subscriptionVM = SubscriptionViewModel()
+    @StateObject private var alertsVM = AlertsViewModel()
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
-                .environmentObject(chatViewModel)
+            Group {
+                if !appState.hasCompletedOnboarding {
+                    OnboardingFlow()
+                } else {
+                    MainTabView()
+                }
+            }
+            .environmentObject(appState)
+            .environmentObject(subscriptionVM)
+            .environmentObject(alertsVM)
         }
     }
 }
